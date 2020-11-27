@@ -1,7 +1,7 @@
 # Learning-OCR
 In this repository I publish some projects done during my studies at OCR.
 
-So I'll just write down here the skills I acquired through these projects.
+So I just wrote down here the skills I acquired through these projects.
 
 
 ### PROJECTS 1 & 2 are mainly here to give an introduction to the job and to learn to communicate as a Data Analyst.
