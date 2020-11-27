@@ -1,0 +1,422 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+<br>
+<br>
+**Abréviations**
+<br>da = disponibilité alimentaire
+<br>di = disponibilité intérieur
+<br>e = énergie
+<br>p = protéine
+<br>pds = poids
+<br>npna = nourriture + perte + nourriture animale
+<br>
+<br>
+**library**
+```{r 2013 library, message=FALSE, warning=FALSE}
+### On charge les library utile à notre projet
+library(dplyr)
+library(DT)
+```
+
+**Fonctions** 
+```{r 2013 fonctions, message=FALSE, warning=FALSE}
+### table_faop prend 5 arguments fixent en entré
+### -table1 et la table de la FAO principale
+### -table2 est la table de la FAO secondaire
+### -code.élément, élément, unité, permettent de changer les colonnes du
+### même nom dans la table1.
+### -On peut multiplier le résultat du produit effectué par l'argument
+### coefficient.
+### ... sont le nom des colonnes par lesquels nous voulons effectuer la
+### jointure interne.
+###
+### table_faop permet de creer une nouvelle table FAO à partir de deux 
+### table FAO qui aura pour valeurs les produits des valeurs des 2 
+### tables choisies.
+table_faop <- 
+  function(table1, table2, ..., code.élément = NA,
+           élément = NA, unité = NA,
+           coefficient = 1){
+    ### On effectue une jointure interne (pas de NA dans les valeurs)
+    ### entre table1 et la colonne Valeur de table2 par ...)
+    new_table<-inner_join(table1,select(table2, ..., Valeur),
+                          by = c(...))%>%
+    ### On change les valeurs des colonnes que l'on souhaite
+    mutate(Code.Élément = code.élément,
+           Élément = élément,
+           Unité = unité,
+           ### On effectue le produit entre les valeurs de colonnes
+           ### puis on multiplie le résultat par coefficient
+           Valeur = round(Valeur.x*Valeur.y*coefficient,0))%>%
+    ### On supprime les colonne valeur de table1 et table2
+    select(c(1:11,16,13:14))
+  ### On renvoie la nouvelle table
+  return(new_table)
+  }
+
+### Cette fonction fait la même chose que table_faop mais permet de
+### diviser les valeurs des colonnes au lieu de les multiplier.
+table_faor <- 
+  function(table1, table2, ..., code.élément = NA,
+           élément = NA, unité = NA,
+           coefficient = 1){ 
+    new_table<-inner_join(table1,select(table2, ..., Valeur),
+                          by = c(...))%>%
+    mutate(Code.Élément = code.élément,
+           Élément = élément,
+           Unité = unité,
+           Valeur = round((Valeur.x/Valeur.y)*coefficient,0))%>%
+    select(c(1:11,16,13:14))
+  return(new_table)
+  }
+
+### iscereal pend un argument en entré:
+### -la table à laquelle on va ajouter une colonne is_cereal
+### ayant pour valeur TRUE or FALSE
+iscereal<-
+  function(table){
+    ### Pour toutes les lignes de la table
+    for(i in 1:nrow(table)) {
+      ### On crée une nouvelle colonne, si le produit est céréalier 
+      ### on met TRUE  
+      if (table$Code.Produit[i] %in% c(2511:2520, 2801)){
+        table$is_cereal[i] <- TRUE
+      ### sinon on met false
+      } else {table$is_cereal[i]<- FALSE}
+    }
+    #On renvoie la table modifiée
+    return(table)
+    }  
+```
+
+**Data.frames :**
+```{r 2013 data.frames, message=FALSE, warning=FALSE}
+### On charge les table FAO utile à notre projet
+pop2013_corrigee<-read.csv("pop2013_corrigee.csv")
+
+pop2017_corrigee<-read.csv("pop2017_corrigee.csv")
+
+da2013_e<-read.csv("da2013_e.csv", encoding = "UTF-8")
+
+da2013_p<-read.csv("da2013_p.csv", encoding = "UTF-8")
+
+### On filtre les 0 pour gagner en précision
+nourriture2013<-read.csv("nourriture2013.csv", encoding = "UTF-8")%>%
+  filter(Valeur >=1, Symbole != "A")
+
+di2013_veg<-read.csv("di2013_veg.csv", encoding = "UTF-8")
+
+### tableau nourriture, perte et nourriture animale, végétale
+npna2013<-read.csv("npna2013.csv", encoding = "UTF-8")%>%
+  filter(Symbole != "A")
+
+
+```
+
+**Question 1:**
+
+```{r 2013}
+### On additionne les populations de tous les pays du monde
+### pour obtenir la population mondiale (les données sont
+### en millier de personnes donc on multiplie par 1000)
+pop2013_totale<-sum(pop2013_corrigee["Valeur"])*1000
+pop2013_totale
+
+pop2017_totale<-sum(pop2017_corrigee["Valeur"])*1000
+pop2017_totale
+```
+**Question 2:**
+
+L’équation qui relie les 11 quantités données est :
+
+\begin{align}
+Disponibilit\acute{e}\,int\acute{e}rieur 
+&= production + importation - exportation - variation\,de\,stock\\ 
+&= nourriture + pertes + semances + aliments\, pour\,animaux + traitement + autres\,utilisations
+\end{align}
+<br>
+*Exemple:*
+
+Les valeurs des 11 quantitées pour le blé en France en 2017
+
+```{r 2013 exemple, message=FALSE, echo=5:7}
+library(dplyr)
+ble<-read.csv("ble_fr_2017.csv", encoding = "UTF-8")
+ble<-select(ble, "Élément","Valeur" )
+DT::datatable(ble)
+ble$Valeur[5]
+sum(ble$Valeur[6:11])
+sum(ble$Valeur[1:2])-sum(ble$Valeur[3:4])
+```
+On considère l’équation vérifiée (nous sommes dans le monde réel il y a des approximations)
+<br>
+<br>
+**Question3** 
+```{r 2013 da, message=FALSE, warning=FALSE}
+### On multiplie les calories de chaque produit pour chaque pays par 
+### la population de chaque pays pour obtenir les calories du produit
+### dans chacun des pays
+### Unité : (kcal/personne/jour)*1000personne = 1000kcal/jour
+### On multiplie le résultat par 1/1000 et on est en 10^6kcal 
+da2013_e_totale<-
+  table_faop(da2013_e, pop2013_corrigee,
+             élément = "Disponibilité alimentaire totale",
+             unité = "10^6 Kcal/jour", "Zone", coefficient =  1/1000)
+
+datatable(select(da2013_e_totale,4,6,8,10:12))
+
+# On fait pareil pour les protéines
+# Unité : (g/personne/jour)*1000personne = kg/jour
+# On multiplie le résultat par 1/1000 et on est en tonne/jour
+da2013_p_totale<-
+  table_faop(da2013_p, pop2013_corrigee,
+             élément = "Disponibilité totale de protéines",
+             unité = "tonne/jour", "Zone", coefficient =  1/1000)
+                     
+datatable(select(da2013_p_totale,4,6,8,10:12))
+```
+<br>
+<br>
+**Question 4**
+
+```{r 2013 ratios, message=FALSE, warning=FALSE}
+### On divise l'énergie de chaque produit par pays par leur poid
+### par pays pour obtenir le ratio énergie/poid de chacun.
+### Unité : (10^6kcal/jour)/(1000tonnes/an) = 365kcal/kg
+### On multiplie le résultat par 365 et on est en kcal/kg
+ratio_e_pds<-
+  table_faor(
+    ### On filtre les 0 pour gagner en précision
+    filter(da2013_e_totale, Valeur >=1),
+    nourriture2013,
+    élément = "ratio (énergie/poids)",
+    unité = "kcal/kg", "Zone",
+    "Produit", coefficient = 365)
+
+datatable(select(ratio_e_pds,4,6,8,10:12))
+
+### On divise le poid de protéine de chaque produit par pays par leur ### poid par pays pour obtenir le ratio poid protéine/poid de chacun.
+### Unité : (tonne/jour)/(1000tonnes/an) = 365/1000 
+### On multiplie le résultat par 36,5 et on est en pourcentage
+ratio_p_pds<-
+  table_faor(
+    da2013_p_totale,
+    nourriture2013, 
+    élément = "(poids de protéines/poids total)*100",
+    unité = "pourcentage", "Zone",
+    "Produit", coefficient = 36.5)
+
+datatable(select(ratio_p_pds,4,6,8,10:12))
+```
+<br>
+<br>
+**Question 5**
+
+```{r 2013 moyenne_ratio, message=FALSE, warning=FALSE}
+### On calcul la moyenne des ratio à l'aide d'une agrégation
+moyenne_ratio_e_pds<-ratio_e_pds %>% 
+  group_by(Produit) %>% 
+  summarise(Valeur=round(mean(Valeur),0))
+
+datatable(moyenne_ratio_e_pds)
+
+
+moyenne_ratio_p_pds<-ratio_p_pds %>% 
+  group_by(Produit) %>% 
+  summarise(Valeur=round(mean(Valeur),0))
+
+datatable(moyenne_ratio_p_pds)
+```
+<br>
+<br>
+**Question 6**
+```{r 2013 di_veg, message=FALSE, warning=FALSE}
+### On calcul la somme totale de calorie végétale du monde pour un an
+### On multiplie le poid de chaque produit par leur ratio(énergie/poid)
+### puis on fait la somme de tous les produits.
+### Unité : (1000tonnes/an)*(kcal/kg) = 10^6kcal/an
+### On multiplie le résultat par 10^6 et on est en kcal/an
+somme_di2013_veg_e<-
+  table_faop(
+    di2013_veg,
+    moyenne_ratio_e_pds, 
+    "Produit", coefficient = 10^6)%>%
+  select(Valeur)%>%
+  sum()
+
+somme_di2013_veg_e
+
+### On calcul la somme totale de protéine végétale du monde pour un an
+### On multiplie le poid de chaque produit par leur pourcentage de 
+### protéine puis on fait la somme de tous les produits.
+### Unité : (1000tonnes/an)*(1/100) = 10^4kg/an
+### On multiplie le résultat par 10^4 et on est en kg
+somme_di2013_veg_p<-
+  table_faop(
+    di2013_veg,
+    moyenne_ratio_p_pds, 
+    "Produit", coefficient = 10^4)%>%
+  select(Valeur)%>%
+  sum()
+
+somme_di2013_veg_p
+```
+<br>
+<br>
+**Question 7**
+```{r 2013 humain nourrit, message=FALSE, warning=FALSE}
+### Un humain à besoin de 1680 kcal par jour pour survivre (FAO)
+cal_min_per_jour<-1680
+### Un humain à besoin de 0.04 kg de protéine par jour pour survivre
+proteine_min_per_jour<-0.04
+
+### On calcule le pourcentage de population mondiale que l'on peut
+### nourir en terme de calorie avec seulement les produits végétaux
+### Unité : (kcal/ans)/(personnes*(kcal/jour/personne)) = 1/365
+### On multiplie par 365 puis par 100 et on est en pourcentage
+humain1_nourrit_e<-
+  (somme_di2013_veg_e/(365*pop2013_totale*cal_min_per_jour))*100
+
+humain1_nourrit_e
+
+### On calcule le pourcentage de population mondiale que l'on peut
+### nourir en terme de protéine avec seulement les produits végétaux
+### Unité : (kg/ans)/(personnes*(kg/jour/personne)) = 1/365
+### On multiplie par 365 puis par 100 et on est en pourcentage
+humain1_nourrit_p<-
+  (somme_di2013_veg_p/
+  (365*pop2013_totale*proteine_min_per_jour))*100
+
+humain1_nourrit_p
+```
+<br>
+<br>
+**Question 8**
+```{r 2013 somme_npna, message=FALSE, warning=FALSE}
+somme_npna2013_e<-npna2013%>%
+  group_by(Produit, Zone)%>%
+  summarise(Valeur = sum(Valeur))%>%
+  table_faop(ratio_e_pds, ., "Produit","Zone", coefficient = 10^6)%>%
+  select(Valeur)%>%
+  sum()
+
+somme_npna2013_e
+
+somme_npna2013_p<-npna2013%>%
+  group_by(Produit, Zone)%>%
+  summarise(Valeur = sum(Valeur))%>%
+  table_faop(ratio_p_pds, ., "Produit","Zone", coefficient = 10^4)%>%
+  select(Valeur)%>%
+  sum()
+
+somme_npna2013_p
+
+humain2_nourrit_e<-
+  (somme_npna2013_e/(365*pop2013_totale*cal_min_per_jour))*100
+
+humain2_nourrit_e
+
+humain2_nourrit_p<-
+  (somme_npna2013_p/(365*pop2013_totale*proteine_min_per_jour))*100
+
+humain2_nourrit_p
+```
+<br>
+<br>
+**Question 9**
+```{r 2013 somme_da, message=FALSE, warning=FALSE}
+somme_da2013_e<-sum(da2013_e_totale$Valeur)*10^6*365
+somme_da2013_e
+
+somme_da2013_p<-sum(da2013_p_totale$Valeur)*1000*365
+somme_da2013_p
+
+humain3_nourrit_e<-
+  (somme_da2013_e/(365*pop2013_totale*cal_min_per_jour))*100
+
+humain3_nourrit_e
+
+humain3_nourrit_p<-
+  (somme_da2013_p/(365*pop2013_totale*proteine_min_per_jour))*100
+
+humain3_nourrit_p
+```
+<br>
+<br>
+**Question 10**
+```{r, message=FALSE, warning=FALSE}
+nbre_sous_alimente <- 800.1*10^6
+nbre_sous_alimente_prct <-
+  (nbre_sous_alimente/pop2013_totale)*100
+```
+
+11.4 % de la population mondiale est considérée comme étant en 
+sous-nutrition d'après la FAO
+
+<br>
+<br>
+**Question 11**
+<br>
+La fonction iscereal nous permet d'ajouter une colonne is_cereal à nos
+table.
+<br>
+```{r, message=FALSE, warning=FALSE}
+nourriture2013_cer<-
+  read.csv("nourriture2013_cér.csv", encoding = "UTF-8")
+
+cereal<-
+  select(nourriture2013_cer, Produit, Code.Produit)
+datatable(cereal)
+
+### D'après les données de la FAO monde/céréal/aliment pour animaux/2013
+na_tolale <- 873548
+
+nourriture2013_cer_totale<-sum(nourriture2013_cer$Valeur)
+
+prop_nourriture_na<-na_tolale*100/(na_tolale+nourriture2013_cer_totale)
+```
+45.9% de la nourriture destinée à l'alimentation est réservée aux animaux
+
+<br>
+<br>
+**Question 12**
+```{r, message=FALSE, warning=FALSE}
+###Liste de pays dans lesquels la FAO recense des personnes en 
+###sous-nutrition en 2013
+pays_sous_alimentes2013<-
+  read.csv("pays_sous_alimente2013.csv", encoding = "UTF-8")%>%
+  filter(Symbole == "F")%>%
+  select(Zone)
+
+exportation2013<-
+  read.csv("exportation2013.csv", encoding = "UTF-8")%>%
+  inner_join(pays_sous_alimentes2013)%>%
+  group_by(Produit)%>%
+  summarise(Valeur = sum(Valeur))%>%
+  arrange(desc(Valeur))%>%
+  slice(1:15)%>%
+  select(Produit)
+
+###La liste des 15 produits les plus exportés par les pays possédant
+###des personnes en sous-nutrition en 2013
+datatable(exportation2013)
+
+###Somme des 200 importation les plus importantes par produit pour 
+###les 15 poduits ci-dessus
+importation2013<-
+  read.csv("importation2013.csv", encoding = "UTF-8")%>%
+  arrange(desc(Valeur))%>%
+  slice(1:200)%>%
+  group_by(Produit, Unité)%>%
+  summarise(Valeur = sum(Valeur))%>%
+  inner_join(exportation2013)
+
+
+```
+
+
+

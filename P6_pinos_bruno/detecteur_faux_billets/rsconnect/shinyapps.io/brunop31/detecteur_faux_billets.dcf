@@ -1,0 +1,10 @@
+name: detecteur_faux_billets
+title:
+username:
+account: brunop31
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2497474
+bundleId: 3366583
+url: https://brunop31.shinyapps.io/detecteur_faux_billets/
+when: 1594204747.29336

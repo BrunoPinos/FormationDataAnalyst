@@ -1,0 +1,7 @@
+"0","library(""xlsx"")
+"
+"2","Erreur : package or namespace load failed for ‘xlsx’:
+ .onLoad a échoué dans loadNamespace() pour 'rJava', détails :
+  appel : fun(libname, pkgname)
+  erreur : JAVA_HOME cannot be determined from the Registry
+"

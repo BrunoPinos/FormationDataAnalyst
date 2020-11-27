@@ -1,0 +1,336 @@
+---
+title: "script_nettoyage"
+author: "brunop31"
+date: "26/05/2020"
+output: html_document
+---
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(DT)
+library(reshape)
+library(splitstackshape)
+library(ggplot2)
+library(scales)
+library(ineq)
+library(zoo)
+library(cluster)
+library(corrplot)
+library(Hmisc)
+library("ggpubr")
+library(rstatix)
+library(BioStatR)
+library(reshape)
+library(questionr)
+library("FactoMineR")
+library("factoextra")
+library("gplots")
+library(tidyr)
+```
+
+```{r}
+###Je filtre les produits tests de la table produit
+products<-read.csv("products.csv", encoding = "UTF-8")%>%
+  filter(id_prod != "T_0")
+
+###Je filtre les clients tests de la table customers
+customers<-read.csv("customers.csv", encoding = "UTF-8")%>%
+  filter(!(client_id %in% c("ct_1","ct_0")))
+
+###Je filtre les produits tests de la table transactions
+transactions<-read.csv("transactions.csv", encoding = "UTF-8")%>%
+  filter(id_prod != "T_0")
+
+###Je transforme la colonne categ de la table produit en facteur
+products$categ<-factor(products$categ)
+
+###Je vérifie qu'il n'y ait pas de valeurs non renseignées
+sapply(products,function(x) sum(is.na(x)))
+sapply(customers,function(x) sum(is.na(x)))
+sapply(transactions,function(x) sum(is.na(x)))
+
+###Cette fonction permet de savoir si une colonne ou un ensemble 
+###de colonne est une primaire ou non d'une certaine table
+###La fonction prend en argument:
+###-la table en question (df)
+###-la, les colonnes, ou l'ensemble de colonne que l'on veut tester
+check_possible_primary_key<-
+  function(df, ...){
+   ###On sélectionne les colonne que l'on veut tester
+   x<-select(df, ...)
+   ###Si le nombre de ligne après avoir supprimé les doublons est le
+   ###même que celui de la table de base on retourne oui sinon non
+   if (nrow(df) == nrow(df[!duplicated(x),])){
+     return(TRUE)
+   }else return(FALSE)
+  }
+
+###Je vérifie si les clés candidates de mes tables sont primaires
+check_possible_primary_key(customers, client_id)
+check_possible_primary_key(products, id_prod)
+check_possible_primary_key(transactions, date)
+```
+
+```{r}
+###je joins à gauche la table produit puis la table customers à ma
+###table transaction.
+###Je joins à gauche car je ne veux pas avoir les clients
+###et les produits qui ne sont pas dans la table transaction
+transactions<-transactions%>%left_join(products)%>%
+  left_join(customers)%>%
+  ###J'ajoute la colonne âge à ma table : 
+  ###année actuelle moins date de naissance
+  mutate(age = 2022 - birth)
+
+###Je vérifie si j'ai des valeurs non renseignées
+sapply(transactions,function(x) sum(is.na(x)))
+
+###Je récupère les "na" dans une table 
+na_table<-filter(transactions, is.na(price) | is.na(categ))
+
+###L'id_produit commence par 0 donc je met le livre dans la categ 0
+na_table$categ<-0
+###Je remplace les prix manquants par la médiane des prix des
+###livres de cette catégorie
+na_table$price<-median(filter(transactions, categ == 0)$price)
+
+###Je supprime les "na" de la table de base puis je lui colle la table
+###extraite modifiée
+transactions<-na.omit(transactions)%>%rbind(na_table)
+
+###J'ajoute le produit manquant à la table produit
+products<-rbind(products, filter(
+  distinct(select(na_table, id_prod, price, categ))))
+
+
+###Je cré une colonne categ_age dans ma table transaction
+###3 catégories : "jeune" <=30 , "moyen" entre 30 et 50, "senior">50   
+
+###je découpe la table en trois selon les ages  
+x<-transactions%>%filter(age<=30)
+y<-transactions%>%filter(age>30 & age<=50)
+z<-transactions%>%filter(age>50)
+
+###je crée et remplis ma colonne categ_age pour chaque tables extraites
+x$categ_age<-"jeune"
+y$categ_age<-"moyen"
+z$categ_age<-"senior"
+
+###Je les recolle pour faire ma nouvelle table transaction avec ma
+###colonne suplémentaire
+transactions<-rbind(x,y,z)
+
+###Je transforme ma nouvelle colonne en facteur
+transactions$categ_age <- factor(transactions$categ_age, levels = c(
+  "jeune", "moyen", "senior"))
+
+###je crée une colonne clé primaire en doublant la colonne date
+transactions$primary_key<-transactions$date
+
+###Je simplifie la date pour la suite, je ne garde que jour mois année
+transactions$date<-as.Date(transactions$date)
+
+###Je crée  une colonne age_sex pour plutard
+transactions$age_sex<- paste(
+  transactions$categ_age, transactions$sex, sep="_")
+
+###je vérifie que je n'ai pas "na"
+sapply(transactions,function(x) sum(is.na(x)))
+
+###je transforme en facteur ma colonne categ
+transactions$categ<-as.factor(transactions$categ)
+
+###Je vérifie ma clé candidate
+check_possible_primary_key(transactions, primary_key)
+```
+
+```{r}
+###Je crée une table qui compte le nombre de produit vendu par jour
+###et les gains par jours
+
+###J'ajoute une colonne qui compte combien de ligne sont identique
+###à la ligne pour id_prod et pour date
+nbre_date<-transactions%>%add_count(date, id_prod)%>%
+  ###Je selectionne les colonnes qui m'intêresse et j'enlève les doublons
+  select(date, id_prod, n, categ, price)%>%distinct()%>%
+  ###je crée une colonne n_price pour calculer les gains par jour
+  ###par produit 
+  mutate(n_price = n*price)%>%
+  ###Je groupe par date et somme les prix et les nombre par jour
+  ###et par produit
+  group_by(date)%>%summarise(price = sum(n_price), n = sum(n))
+
+###Je trie par date
+nbre_date<-arrange(nbre_date, date)
+
+###Je crée une colonne pour avoir la moyenne mobile centrer sur 7 jour
+nbre_date$roll7 = 
+  rollmean(nbre_date$price, 7, na.pad=TRUE, align = "center")
+
+###Je vérifie ma clé candidate
+check_possible_primary_key(nbre_date, date)
+
+###J'ajoute une colonne qui compte combien de ligne sont identique
+###à la ligne pour id_prod et pour date
+nbre_date_categ<-transactions%>%add_count(date, id_prod)%>%
+  ###Je selectionne les colonnes qui m'intêresse et j'enlève les doublons
+  select(date, id_prod, n, categ, price, categ)%>%distinct()%>%
+  ###je crée une colonne n_price pour calculer les gains par jour
+  ###par produit 
+  mutate(n_price = n*price)%>%
+  ###Je groupe par date et categ et somme les prix et les nombre par jour
+  ###et par produit
+  group_by(date, categ)%>%summarise(price = sum(n_price), n = sum(n))%>%
+  ###J'ajoute les lignes manquantes lorsqu'aucun produit d'une catégorie
+  ###n'a été vendu un certain jour
+  full_join(expand(., date, categ))
+
+###J'extrait les "na" ajouter lors de l'ajout de ligne dans une table
+na_table<-filter(nbre_date_categ, is.na(price) | is.na(n))
+
+###Pas de livre de cette catégorie vendu donc n = 0 et price = 0
+na_table$price<-0
+na_table$n<-0
+
+###J'enlève les "na" et je colle la table extraite modifiée
+nbre_date_categ<-na.omit(nbre_date_categ)%>%rbind(na_table)
+
+###Je vérifie qu'il n'y a plus de "na"
+sum(is.na(nbre_date_categ))
+
+###Je trie par categ
+nbre_date_categ<-arrange(nbre_date_categ, categ)
+
+###Je crée une colonne pour calculer la moyenne mobile à droite
+###J'ai trié par date et j'ai mis à droite donc il me suffira
+###de commencé le graphique 6 jours après pour éviter les "na"
+nbre_date_categ$roll7 = 
+  rollmean(nbre_date_categ$n, 7, na.pad=TRUE, align = "right")
+
+###Je vérifie ma clé candidate
+check_possible_primary_key(nbre_date_categ, date, categ)
+
+
+nbre_date_categ_age<-transactions%>%group_by(date, id_prod,categ_age)%>%count()%>%
+  inner_join(select(products, id_prod, price))%>%
+  mutate(n_price = n*price)%>%
+  group_by(date, categ_age)%>%summarise(price = sum(n_price), n = sum(n))
+
+
+check_possible_primary_key(nbre_date_categ_age, date, categ_age)
+
+products<-transactions%>%group_by(id_prod, price, categ)%>%count()%>%
+  mutate(n_price = n*price)%>%full_join(products)
+
+sapply(products,function(x) sum(is.na(x)))
+
+na_table<-filter(products, is.na(n) | is.na(n_price))
+
+na_table$n <- 0
+na_table$n_price <- 0
+
+products<-na.omit(products)%>%rbind(na_table)
+           
+check_possible_primary_key(products, id_prod)
+
+nbre_date_customers<-transactions%>%select(date,client_id)%>%
+  distinct()%>%group_by(date)%>%count()
+
+nbre_date_customers<-arrange(nbre_date_customers, date)
+
+nbre_date_customers$roll7 = 
+  rollmean(nbre_date_customers$n, 7, na.pad=TRUE, align = "center")
+  
+```
+
+```{r}
+customers<-select(transactions, age, client_id, session_id)%>%distinct()%>%
+  group_by(client_id, age)%>%count()%>%ungroup()%>%
+  transmute(client_id = client_id,
+            age = age,
+            frequence = n/12)
+
+  
+customers$panier_moyen<-transactions%>%group_by(client_id)%>%count()%>%
+  .$n/(customers$frequence*12)
+
+customers$montant_total<-transactions%>%group_by(client_id)%>%
+  summarise(sum_price = sum(price))%>%.$sum_price
+
+customers<-full_join(customers, distinct(select(
+  transactions, client_id, birth, categ_age, sex)),by = "client_id")
+
+x<-transactions%>%group_by(client_id, categ)%>%
+  summarise(sum_price = sum(price))%>%as.data.frame()
+
+y<-select(x, client_id, categ)%>%expand(client_id, categ)
+
+z<-full_join(x, y)%>%group_by(client_id)%>%
+  summarise(sum_price = max(sum_price, na.rm = TRUE))%>%
+  inner_join(x)
+
+customers$categ_favorite<-z$categ  
+
+customers$categ_age<-as.numeric(customers$categ_age)
+customers$sex<-as.numeric(customers$sex)
+
+big_customers<-c("c_1609", "c_4958", "c_6714","c_3454")
+
+customers_age<-customers%>%filter(!(client_id %in% big_customers))%>%
+  group_by(age)%>%
+  summarise(n = n(),frequence = mean(frequence),
+            panier_moyen = mean(panier_moyen),
+            montant_total = mean(montant_total))%>%
+  filter(n > 5)
+
+x<-filter(customers_age, age<=30)
+y<-filter(customers_age, age>30 & age<=50)
+z<-filter(customers_age, age>50)
+
+x$categ_age<-"[0, 30]"
+y$categ_age<-"]30, 50]"
+z$categ_age<-"[50, 100["
+
+customers_age<-rbind(x, y, z)
+
+nbre_date_big<-
+  filter(transactions, client_id %in% big_customers)%>%
+  group_by(date, id_prod)%>%count()%>%
+  inner_join(select(products, id_prod, price))%>%
+  mutate(n_price = n*price)%>%
+  group_by(date)%>%summarise(price = sum(n_price), n = sum(n))
+
+nbre_date_big<-arrange(nbre_date_big, date)
+
+nbre_date_big$roll7 = 
+  rollmean(nbre_date_big$price, 7, na.pad=TRUE, align = "center")
+```
+
+```{r}
+products<-products%>%mutate(id_prod2 = id_prod)%>%
+  separate(id_prod2, c("categ2", "num"))%>%
+  select(-"categ2")
+
+products$num<-as.numeric(products$num)
+
+x<-filter(products, categ == 0)$num
+y<-data.frame(list = c(0:max(x)))
+z<-filter(y, !(list %in% x))
+nrow(z)
+
+x<-filter(products, categ == 1)$num
+y<-data.frame(list = c(0:max(x)))
+z<-filter(y, !(list %in% x))
+nrow(z)
+
+x<-filter(products, categ == 2)$num
+y<-data.frame(list = c(0:max(x)))
+z<-filter(y, !(list %in% x))
+nrow(z)
+```
+```{r}
+save(customers, customers_age, nbre_date, nbre_date_categ,
+     nbre_date_categ_age, products, transactions, big_customers,
+     nbre_date_big, nbre_date_customers, file = "table_P4")
+```
+
+

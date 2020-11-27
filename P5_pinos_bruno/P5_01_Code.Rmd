@@ -1,0 +1,324 @@
+---
+title: "script_P5"
+author: "brunop31"
+date: "06/07/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+
+select<-dplyr::select
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+#J'importe les données de la FAO et je sélectionne les colonnes
+#qui m'intéresse
+
+pop_2008<-read.csv("pop_2008.csv", encoding = "UTF-8")%>%
+  select("Zone", "pop2008" = "Valeur")
+
+
+pop_2018<-read.csv("pop_2018.csv", encoding = "UTF-8")%>%
+  select("Zone", "pop2018" = "Valeur")
+
+prot_ani_hab<-read.csv("prot_ani_habitant.csv", encoding = "UTF-8")%>%
+  select("Zone", "prot_ani" = "Valeur")
+
+
+prot_hab<-read.csv("prot_habitant.csv", encoding = "UTF-8")%>%
+  select("Zone", "prot" = "Valeur")
+
+kcal_hab<-read.csv("kcal_habitant.csv", encoding = "UTF-8")%>%
+  select("Zone", "kcal" = "Valeur")
+
+pib_hab<-read.csv("pib_habitant.csv", encoding = "UTF-8")%>%
+  select("Zone", "pib" = "Valeur")%>%group_by(Zone)%>%
+  summarise_if(is.numeric, round)
+```
+
+```{r, warning=FALSE, message=FALSE}
+#Je regroupe les données dans un même tableau
+
+df<-left_join(prot_ani_hab, pop_2008)%>%
+  left_join(pop_2018)%>%left_join( prot_hab)%>%
+  left_join(kcal_hab)%>%left_join(pib_hab)
+
+#Je vérifie si il y a des données non renseigné
+
+sapply(df,function(x) sum(is.na(x)))
+
+na_table<-filter(df, is.na(pop2008)|is.na(pib))
+
+#Je complete les données non renseigné et je raccourci
+#les noms de pays trop long
+df$Zone<-df$Zone%>%as.vector()
+
+df["138","Zone"]<-"Royaume-Uni"
+df["135","Zone"]<-"Corée du Nord"
+df["131","Zone"]<-"Corée du Sud"
+df["133","Zone"]<-"Laos"
+df["168","Zone"]<-"Venezuela"
+df["150","pop2008"]<-	33060
+df["35","pib"]<-24971
+
+#Je fais les calculs pour obtenir les colonnes voulues
+
+df<-df%>%
+  mutate(pop_diff = round((pop2018 -pop2008)*100/pop2008,1),
+         prot_ani_prct = round(prot_ani*100/prot,0))%>%
+  select(-"prot_ani", -"pop2018", -"pop2008")
+```
+```{r}
+#Je construit mon dendrogramme à partir des variables demandées
+
+df_table<-df
+row.names(df_table)<-df_table$Zone
+df_table<-select(df_table, -"Zone",-"pib")
+
+df_table.cr<-scale(df_table, center = T, scale = T)
+
+d.df_table<- dist(df_table.cr)
+
+cah.ward <- hclust(d.df_table,method="ward.D2", )
+
+#Je déssine mon arbre
+fviz_dend(cah.ward,
+          k = 5,
+          cex = 0.4,                     # Label size
+          palette = "jco",               # Color palette see ?ggpubr::ggpar
+          rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+          rect_border = "jco",           # Rectangle color
+          labels_track_height = 5      # Augment the room for labels
+          )
+```
+```{r}
+#Je récupère les cluster former par mon algorithme 
+groupes.cah <- cutree(cah.ward,k=5)
+
+a<-as.data.frame(sort(groupes.cah))%>%select(clust = "sort(groupes.cah)")
+
+#Je crée un fichier csv pour enregistrer mes groupes
+write.csv(a, file = "liste_pays.csv")
+
+a$Zone<-row.names(a)
+
+df<-df%>%inner_join(a)
+
+#Je calcul les centre des clusters
+centroide<-select(df, -"Zone")%>%
+  group_by(clust)%>%
+  summarise_if(is.numeric, function(x) round(mean(x),1))
+
+#Je crée un fichier csv pour enregistrer mes clusters
+write.csv(centroide, file = "centroide.csv", row.names = FALSE)
+```
+
+```{r}
+#Je renomme les cluster
+df$clust<-as.vector(df$clust)
+df[df$clust == 1,]$clust<-"pays sous développés"
+df[df$clust == 2,]$clust<-"autres"
+df[df$clust == 3,]$clust<-"occident"
+df[df$clust == 4,]$clust<-"pays en transition"
+df[df$clust == 5,]$clust<-"pays à forte démographie"
+df$clust<-as.factor(df$clust)
+```
+
+
+```{r}
+#Je fais une pca sur mes données
+res.pca <- PCA(df_table, graph = FALSE)
+
+#J'affiche le cercle des corrélations
+fviz_pca_var(res.pca,repel = TRUE)
+```
+
+```{r}
+#J'observe mon premier plan (inertie >85%, je ne regarde pas les autres)
+groupes<-groupes.cah%>%as.data.frame()
+
+fviz_pca_ind(res.pca, col.ind = as.character(groupes.cah),
+             mean.point = TRUE, geom.ind = c(""), pointsize = 4)
+```
+
+
+```{r}
+###Je réalise un test de shapiro wilk sur chaque variable de la 
+###table de base 
+
+w<-ggplot(df, aes(prot))+
+  geom_histogram(aes(y=..density..), bins = 30,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(prot)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+       
+shapiro.test(df$prot)
+
+```
+
+```{r}
+
+x<-ggplot(df, aes(kcal))+
+  geom_histogram(aes(y=..density..), bins = 30,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(kcal)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+shapiro.test(df$kcal)
+```
+```{r}
+
+y<-ggplot(df, aes(pop_diff))+
+  geom_histogram(aes(y=..density..), bins = 30,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(pop_diff)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+shapiro.test(df$pop_diff)
+```
+```{r}
+
+z<-ggplot(df, aes(prot_ani_prct))+
+  geom_histogram(aes(y=..density..), bins = 30,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(prot_ani_prct)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+shapiro.test(df$prot_ani_prct)
+```
+```{r}
+
+v<-ggplot(df, aes(pib))+
+  geom_histogram(aes(y=..density..), bins = 30,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(pib)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+shapiro.test(df$pib)
+
+###On rejette l'hypothèse nulle au seuil de 1%
+###Les variables retenues sont kcal et prot 
+```
+```{r}
+#J'affiche les courbe de densité de chacune des variables
+grid.arrange(w,x,y,z,v, ncol=2, nrow = 3)
+```
+```{r, warning=FALSE, message=FALSE}
+#J'extrait les pays de mes groupes dans 5 table différentes
+df_1<-df%>%filter(clust == "pays sous développés")%>%
+  select(-"clust")
+
+df_2<-df%>%filter(clust == "pays en transition")%>%
+  select(-"clust")
+
+df_3<-df%>%filter(clust == "pays à forte démographie")%>%
+  select(-"clust")
+
+df_4<-df%>%filter(clust == "autres")%>%
+  select(-"clust")
+
+df_5<-df%>%filter(clust == "occident")%>%
+  select(-"clust")
+
+```
+
+```{r}
+#J'observe la dispersion de mes groupes selon la variable kcal
+ggplot(df, aes(x = clust, y = kcal, fill = clust))+
+  geom_boxplot()+ 
+  theme(legend.position="none")+
+  stat_summary(fun.y=mean, geom="point", shape=4, size=2)+
+  scale_x_discrete(limits=c("pays sous développés",
+                            "pays en transition",
+                            "autres",
+                            "pays à forte démographie",
+                            "occident"))+ coord_flip()
+```
+
+```{r}
+#je construit les courbes de densitée pour kcal des 2 groupes
+x1<-ggplot(filter(df, clust == "pays en transition"), aes(kcal))+
+  geom_histogram(aes(y=..density..), bins = 10,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(kcal)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+
+x2<-ggplot(filter(df, clust == "pays sous développés"), aes(kcal))+
+  geom_histogram(aes(y=..density..), bins = 10,
+                 colour="black", fill="white")+
+ geom_density(alpha=.2, fill="#FF6666")+
+  geom_vline(aes(xintercept=mean(kcal)),
+            color="blue", linetype="dashed", size=1)+ 
+  theme(axis.text.y = element_blank())
+
+#J'éffectue un test de normalité pour kcal sur les 2 groupes
+shapiro.test(filter(df, clust == "pays sous développés")$kcal)
+shapiro.test(filter(df, clust == "pays en transition")$kcal)
+```
+
+```{r}
+#j'affiche les courbes
+grid.arrange(x1,x2, ncol=2, nrow = 1)
+```
+
+```{r}
+###Test de fisher (variance)
+var.test(df_1$kcal, df_2$kcal)
+###p-value = 0.09905 les variances sont différentes au seuil de 10%
+```
+```{r}
+#Je choisis le groupe occident et je réalise une pca par rapport 
+#au variable pop_diff et pib
+df_table_5<-df_5
+
+row.names(df_table_5)<-df_table_5$Zone
+df_table_5<-select(df_table_5,"pib","pop_diff")
+
+res.pca <- PCA(df_table_5, graph = FALSE)
+```
+
+```{r}
+fviz_pca_var(res.pca,repel = TRUE)
+```
+
+```{r}
+fviz_pca_ind(res.pca, col.ind = "x")
+```
+
+
+```{r}
+#J'établis la liste des pays du plus intéressant au moins intéressant
+#pour nous.
+#La variable x est un mélange égal de la variable pib et de la 
+#variable pop_diff
+pays_liste<-res.pca[["ind"]][["coord"]]%>%as.data.frame()
+pays_liste$Zone<-rownames(pays_liste)
+pays_liste<-pays_liste%>%select(Zone, Dim.1)%>%arrange(desc(Dim.1))
+pays_liste
+
+```
+```{r}
+shapiro.test(df_1$kcal)
+shapiro.test(df_2$kcal)
+```
+

@@ -1,0 +1,40 @@
+---
+title: "testlda"
+author: "brunop31"
+date: "23/06/2020"
+output: html_document
+---
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(FactoMineR)
+library(factoextra)
+library(gridExtra)
+library(corrplot)
+library(caret)
+```
+
+```{r}
+load("model")
+
+a<-read.csv("example.csv", encoding = "UTF-8")
+b<-read.csv("test-billet.csv", encoding = "UTF-8")
+df<-rbind(a,b)
+
+df.transformed <- preproc.param %>% predict(df)
+
+
+predictions <- model %>% predict(df.transformed)
+
+df$id
+
+c<-predictions$class%>%as.data.frame()%>%cbind(df$id,.)%>%
+  select("id" = "df$id", "is_genuine" =".")
+
+DT::datatable(c)
+```
+
+
+
+
+

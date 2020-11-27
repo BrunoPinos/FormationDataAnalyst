@@ -1,0 +1,840 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={script\_graphique},
+  pdfauthor={brunop31},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+
+\title{script\_graphique}
+\author{brunop31}
+\date{26/05/2020}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(dplyr)}
+\KeywordTok{library}\NormalTok{(DT)}
+\KeywordTok{library}\NormalTok{(reshape)}
+\KeywordTok{library}\NormalTok{(splitstackshape)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+\KeywordTok{library}\NormalTok{(scales)}
+\KeywordTok{library}\NormalTok{(ineq)}
+\KeywordTok{library}\NormalTok{(zoo)}
+\KeywordTok{library}\NormalTok{(cluster)}
+\KeywordTok{library}\NormalTok{(corrplot)}
+\KeywordTok{library}\NormalTok{(Hmisc)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"ggpubr"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(rstatix)}
+\KeywordTok{library}\NormalTok{(BioStatR)}
+\KeywordTok{library}\NormalTok{(reshape)}
+\KeywordTok{library}\NormalTok{(questionr)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"FactoMineR"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"factoextra"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(}\StringTok{"gplots"}\NormalTok{)}
+\KeywordTok{library}\NormalTok{(tidyr)}
+\KeywordTok{library}\NormalTok{(gglorenz)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je charge les tableaux creer dans mon script nettoyage}
+\KeywordTok{load}\NormalTok{(}\StringTok{"table_p4"}\NormalTok{)}
+
+\CommentTok{###Je calcul des mesures de tendances et de dispersions}
+
+\CommentTok{###Sur les gains par jour avant le 02/10}
+\KeywordTok{summary}\NormalTok{(}\KeywordTok{filter}\NormalTok{(nbre_date, date }\OperatorTok{<}\StringTok{ "2021-10-02"}\NormalTok{)}\OperatorTok{$}\NormalTok{price)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   13792   15241   15700   15830   16277   18792
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Sur les gains par jour entre le 02/10 et le 27/10}
+\KeywordTok{summary}\NormalTok{(}\KeywordTok{filter}\NormalTok{(nbre_date, date }\OperatorTok{>}\StringTok{ "2021-10-02"} \OperatorTok{&}
+\StringTok{                 }\NormalTok{date }\OperatorTok{<}\StringTok{ "2021-10-27"}\NormalTok{)}\OperatorTok{$}\NormalTok{price)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    8076    8839    9205    9187    9460   10231
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Sur les gain par jour sur toute la période}
+\KeywordTok{summary}\NormalTok{(nbre_date}\OperatorTok{$}\NormalTok{price)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    8076   15280   16066   15884   17063   20313
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée un violin plot pour mesurer la dispersion des aages des client}
+\CommentTok{###par achat en fonction de leur âge pour chaque catégorie}
+
+\CommentTok{###Je filtre les gros clients et les clients de 18 ans trop nombreux}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(transactions,}\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers),}
+\NormalTok{              age }\OperatorTok{!=}\StringTok{ }\DecValTok{18}\NormalTok{),}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ categ, }\DataTypeTok{y =}\NormalTok{ age, }\DataTypeTok{fill =}\NormalTok{ categ)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_violin}\NormalTok{(}\DataTypeTok{trim=}\OtherTok{FALSE}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{width=}\FloatTok{0.1}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"white"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x=}\StringTok{"Catégorie de livre"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Age des clients par achat"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_fill_brewer}\NormalTok{(}\DataTypeTok{palette=}\StringTok{"Blues"}\NormalTok{) }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-3-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée une représentation de série temporelle, les gains par jours}
+\KeywordTok{ggplot}\NormalTok{(nbre_date, }\KeywordTok{aes}\NormalTok{(date, roll7)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{col =} \StringTok{"royalblue3"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Date"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Gain par jour (en euros)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 6 rows containing missing values (geom_path).
+\end{verbatim}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-4-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je regarde le nombre de livre vendu par jour entre le 14/08 et le01/11}
+\KeywordTok{ggplot}\NormalTok{(nbre_date_categ, }\KeywordTok{aes}\NormalTok{(date, n)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{colour =}\NormalTok{ categ))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_date}\NormalTok{(}\DataTypeTok{breaks =} \KeywordTok{date_breaks}\NormalTok{(}\StringTok{"month"}\NormalTok{), }
+               \DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\KeywordTok{as.Date}\NormalTok{(}\StringTok{"2021-08-14"}\NormalTok{),}\KeywordTok{as.Date}\NormalTok{(}\StringTok{"2021-11-01"}\NormalTok{)),}
+  \DataTypeTok{labels =} \KeywordTok{date_format}\NormalTok{(}\StringTok{"%d-%m"}\NormalTok{)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Nombre de livres vendus"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Année 2021 "}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Removed 855 rows containing missing values (geom_path).
+\end{verbatim}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée une courbe de Lorenz pour étudié la répartition des gains}
+\CommentTok{###par rapport aux produits vendu}
+\KeywordTok{ggplot}\NormalTok{(products, }\KeywordTok{aes}\NormalTok{(n_price)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{stat_lorenz}\NormalTok{() }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_abline}\NormalTok{(}\DataTypeTok{color =} \StringTok{"grey"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Pourcentages cumulés des produits"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Pourcentages cumulés des gains"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{breaks =} \KeywordTok{round}\NormalTok{(}\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DataTypeTok{by =} \FloatTok{0.5}\NormalTok{),}\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =}\NormalTok{ percent) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{breaks =} \KeywordTok{round}\NormalTok{(}\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DataTypeTok{by =} \FloatTok{0.5}\NormalTok{),}\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =}\NormalTok{ percent)}\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\DataTypeTok{yintercept=}\FloatTok{0.04}\NormalTok{, }\DataTypeTok{linetype=}\StringTok{"dashed"}\NormalTok{, }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_vline}\NormalTok{(}\DataTypeTok{xintercept=}\FloatTok{0.5}\NormalTok{, }\DataTypeTok{linetype=}\StringTok{"dashed"}\NormalTok{, }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je calcul l'indice de Gini de cette courbe}
+\KeywordTok{ineq}\NormalTok{(products}\OperatorTok{$}\NormalTok{n_price,}\DataTypeTok{type=}\StringTok{"Gini"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.7402233
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée une courbe de Lorenz pour étudié la répartition des gains}
+\CommentTok{###par rapport aux clients}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(customers,}\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers)),}
+       \KeywordTok{aes}\NormalTok{(montant_total)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{stat_lorenz}\NormalTok{() }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_abline}\NormalTok{(}\DataTypeTok{color =} \StringTok{"grey"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Pourcentage cumulé des clients"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Pourcentage cumulé des gains"}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_x_continuous}\NormalTok{(}\DataTypeTok{breaks =} \KeywordTok{round}\NormalTok{(}\KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DataTypeTok{by =} \FloatTok{0.1}\NormalTok{),}\DecValTok{1}\NormalTok{),}
+                     \DataTypeTok{labels =}\NormalTok{ percent) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{scale_y_continuous}\NormalTok{(}\DataTypeTok{labels =}\NormalTok{ percent)}\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_hline}\NormalTok{(}\DataTypeTok{yintercept=}\FloatTok{0.013}\NormalTok{, }\DataTypeTok{linetype=}\StringTok{"dashed"}\NormalTok{, }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_vline}\NormalTok{(}\DataTypeTok{xintercept=}\FloatTok{0.10}\NormalTok{, }\DataTypeTok{linetype=}\StringTok{"dashed"}\NormalTok{, }\DataTypeTok{color =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je calcul l'indice de Gini de cette courbe}
+\KeywordTok{ineq}\NormalTok{(customers}\OperatorTok{$}\NormalTok{montant_total,}\DataTypeTok{type=}\StringTok{"Gini"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.4397162
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée l'histogramme du nombre de client en fonction de leur âge }
+\KeywordTok{ggplot}\NormalTok{(customers_age, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age, }\DataTypeTok{y =}\NormalTok{ n)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\DataTypeTok{stat =} \StringTok{"identity"}\NormalTok{, }\DataTypeTok{width =} \FloatTok{0.3}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"age"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"nombre de customers"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je réalise un test du chi-2}
+
+\CommentTok{###Je crée une table de contingence. sexe des clients/catégorie de livre}
+\NormalTok{contingence_table<-}\KeywordTok{table}\NormalTok{(transactions}\OperatorTok{$}\NormalTok{sex, transactions}\OperatorTok{$}\NormalTok{categ)}
+
+\CommentTok{###Je crée un balloonplot}
+\KeywordTok{balloonplot}\NormalTok{(}\KeywordTok{t}\NormalTok{(contingence_table), }\DataTypeTok{xlab =} \StringTok{"categ"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"sexe"}\NormalTok{,}
+            \DataTypeTok{label =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{show.margins =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je réalise mon test du chi-2}
+\KeywordTok{chisq.test}\NormalTok{(contingence_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  contingence_table
+## X-squared = 81.733, df = 2, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###je calcul le V de cramer (c'est ma statistique de test)}
+\KeywordTok{cramer.v}\NormalTok{(contingence_table)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.0155777
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###J'effectue un test ANOVA pour calculer l'effet de l'âge}
+\CommentTok{###sur les catégories acheté}
+\NormalTok{res.aov <-}\StringTok{ }\KeywordTok{aov}\NormalTok{(age }\OperatorTok{~}\StringTok{ }\NormalTok{categ , }\DataTypeTok{data =}\NormalTok{ transactions)}
+\KeywordTok{summary}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##                 Df   Sum Sq Mean Sq F value Pr(>F)    
+## categ            2  7320833 3660416   22713 <2e-16 ***
+## Residuals   336813 54281447     161                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Effect size}
+\KeywordTok{eta_squared}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##     categ 
+## 0.1188403
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je décide de faire une afc pour voire si il est pertinent de regrouper}
+\CommentTok{###les gens selon des catégories d'âge}
+\NormalTok{variance_table<-}\KeywordTok{table}\NormalTok{(transactions}\OperatorTok{$}\NormalTok{age, transactions}\OperatorTok{$}\NormalTok{categ)}
+
+\NormalTok{res.ca <-}\StringTok{ }\KeywordTok{CA}\NormalTok{ (variance_table, }\DataTypeTok{graph =} \OtherTok{FALSE}\NormalTok{)}
+
+\KeywordTok{fviz_ca_biplot}\NormalTok{ (res.ca, }\DataTypeTok{repel =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{title =} 
+                  \StringTok{"Répartition des âges selon les catégories achetées"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée une table de contingence. sexe des clients/catégorie de livre}
+\NormalTok{contingence_table<-}\KeywordTok{table}\NormalTok{(transactions}\OperatorTok{$}\NormalTok{categ_age, transactions}\OperatorTok{$}\NormalTok{categ)}
+
+\CommentTok{###Je crée un balloonplot}
+\KeywordTok{balloonplot}\NormalTok{(}\KeywordTok{t}\NormalTok{(contingence_table), }\DataTypeTok{xlab =} \StringTok{"categ"}\NormalTok{, }\DataTypeTok{ylab =} \StringTok{"categ_age"}\NormalTok{,}
+            \DataTypeTok{label =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{show.margins =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{variance_table_chi2<-}
+\StringTok{  }\KeywordTok{table}\NormalTok{(transactions}\OperatorTok{$}\NormalTok{categ_age,transactions}\OperatorTok{$}\NormalTok{categ)}
+
+\KeywordTok{chisq.test}\NormalTok{(variance_table_chi2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  variance_table_chi2
+## X-squared = 152008, df = 4, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cramer.v}\NormalTok{(variance_table_chi2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.4750309
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je fais un test du chi2 entre la categ d'age et la categ de livre}
+\CommentTok{###favorite}
+\NormalTok{variance_table_chi2<-}
+\StringTok{  }\KeywordTok{table}\NormalTok{(customers}\OperatorTok{$}\NormalTok{categ_age,customers}\OperatorTok{$}\NormalTok{categ_favorite)}
+
+\KeywordTok{chisq.test}\NormalTok{(variance_table_chi2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Pearson's Chi-squared test
+## 
+## data:  variance_table_chi2
+## X-squared = 12493, df = 4, p-value < 2.2e-16
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{cramer.v}\NormalTok{(variance_table_chi2)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.8522528
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Analyse de la dispersion des frequence}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(customers, }\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers)),}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \StringTok{""}\NormalTok{,}\DataTypeTok{y =}\NormalTok{ frequence))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_violin}\NormalTok{(}\DataTypeTok{trim =} \OtherTok{FALSE}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{width=}\FloatTok{0.1}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"white"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{stat_summary}\NormalTok{(}\DataTypeTok{fun.y=}\NormalTok{mean, }\DataTypeTok{geom=}\StringTok{"point"}\NormalTok{, }\DataTypeTok{shape=}\DecValTok{23}\NormalTok{, }\DataTypeTok{size=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Analyse de la dispersion des paniers moyens}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(customers, }\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers)),}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \StringTok{""}\NormalTok{,}\DataTypeTok{y =}\NormalTok{ panier_moyen))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_violin}\NormalTok{(}\DataTypeTok{trim =} \OtherTok{FALSE}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{width=}\FloatTok{0.1}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"white"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{stat_summary}\NormalTok{(}\DataTypeTok{fun.y=}\NormalTok{mean, }\DataTypeTok{geom=}\StringTok{"point"}\NormalTok{, }\DataTypeTok{shape=}\DecValTok{23}\NormalTok{, }\DataTypeTok{size=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-17-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Analyse de la dispersion des montants totaux}
+\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{filter}\NormalTok{(customers, }\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers)),}
+       \KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =} \StringTok{""}\NormalTok{,}\DataTypeTok{y =}\NormalTok{ montant_total))}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_violin}\NormalTok{(}\DataTypeTok{trim =} \OtherTok{FALSE}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_boxplot}\NormalTok{(}\DataTypeTok{width=}\FloatTok{0.1}\NormalTok{, }\DataTypeTok{fill=}\StringTok{"white"}\NormalTok{)}\OperatorTok{+}
+\StringTok{  }\KeywordTok{stat_summary}\NormalTok{(}\DataTypeTok{fun.y=}\NormalTok{mean, }\DataTypeTok{geom=}\StringTok{"point"}\NormalTok{, }\DataTypeTok{shape=}\DecValTok{23}\NormalTok{, }\DataTypeTok{size=}\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Au vu de mes analyses je décides de travailler sur ma table}
+\CommentTok{###où les clients sont regroupés par âge et les variables}
+\CommentTok{###calculées avec la moyenne.}
+\CommentTok{###Je perds un peu de précision mais je gagné énormément en lisibilité}
+
+\CommentTok{###Je trace la courbe de l'âge en fonction du montant_total}
+\KeywordTok{ggplot}\NormalTok{(customers_age, }\KeywordTok{aes}\NormalTok{(age, montant_total)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{col =} \StringTok{"royalblue3"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{"age"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"montant_total"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-19-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je trace la courbe de l'âge en fonction du panier moyen}
+\KeywordTok{ggplot}\NormalTok{(customers_age, }\KeywordTok{aes}\NormalTok{(age, panier_moyen)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{col =} \StringTok{"royalblue3"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{"age"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"panier moyen"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-20-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je trace la courbe de l'âge en fonction de la fréquence}
+\KeywordTok{ggplot}\NormalTok{(customers_age, }\KeywordTok{aes}\NormalTok{(age, frequence)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{col =} \StringTok{"royalblue3"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{xlab}\NormalTok{(}\StringTok{"age"}\NormalTok{) }\OperatorTok{+}\StringTok{ }\KeywordTok{ylab}\NormalTok{(}\StringTok{"frequence"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-21-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###je réalise la matrice des corrélation pour ces 3 variables par}
+\CommentTok{###raport à l'âge du client}
+
+\NormalTok{customers_cor<-}\KeywordTok{select}\NormalTok{(customers_age, }\OperatorTok{-}\StringTok{"categ_age"}\NormalTok{, }\OperatorTok{-}\StringTok{"n"}\NormalTok{)}
+
+\NormalTok{cormat <-}\StringTok{ }\KeywordTok{cor}\NormalTok{(customers_cor, }\DataTypeTok{method =} \StringTok{"pearson"}\NormalTok{)}
+
+\NormalTok{p.mat <-}\StringTok{ }\KeywordTok{cor.mtest}\NormalTok{(customers_cor)}\OperatorTok{$}\NormalTok{p}
+
+\NormalTok{col <-}\StringTok{ }\KeywordTok{colorRampPalette}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"#BB4444"}\NormalTok{, }\StringTok{"#EE9988"}\NormalTok{, }\StringTok{"#FFFFFF"}\NormalTok{, }\StringTok{"#77AADD"}\NormalTok{,}
+                          \StringTok{"#4477AA"}\NormalTok{))}
+
+\KeywordTok{corrplot}\NormalTok{(cormat, }\DataTypeTok{method =} \StringTok{"color"}\NormalTok{, }\DataTypeTok{col =} \KeywordTok{col}\NormalTok{(}\DecValTok{200}\NormalTok{),}
+         \DataTypeTok{type =} \StringTok{"full"}\NormalTok{, }\DataTypeTok{order =} \StringTok{"FPC"}\NormalTok{, }\DataTypeTok{number.cex =} \FloatTok{.7}\NormalTok{,}
+         \DataTypeTok{addCoef.col =} \StringTok{"black"}\NormalTok{, }\CommentTok{# Add coefficient of correlation}
+         \DataTypeTok{tl.col =} \StringTok{"black"}\NormalTok{, }\DataTypeTok{tl.srt =} \DecValTok{90}\NormalTok{, }\CommentTok{# Text label color and rotation}
+         \CommentTok{# Combine with significance}
+         \DataTypeTok{p.mat =}\NormalTok{ p.mat, }\DataTypeTok{sig.level =} \FloatTok{0.01}\NormalTok{, }
+         \CommentTok{# hide correlation coefficient on the principal diagonal}
+         \DataTypeTok{diag =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###je réalise la matrice des corrélation pour ces 3 variables par}
+\CommentTok{###raport à l'âge du client pour les =<30 ans}
+
+\NormalTok{customers_cor<-}\KeywordTok{select}\NormalTok{(customers_age, }\OperatorTok{-}\StringTok{"categ_age"}\NormalTok{, }\OperatorTok{-}\StringTok{"n"}\NormalTok{)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(age}\OperatorTok{<=}\DecValTok{30}\NormalTok{)}
+
+\NormalTok{cormat <-}\StringTok{ }\KeywordTok{cor}\NormalTok{(customers_cor, }\DataTypeTok{method =} \StringTok{"pearson"}\NormalTok{)}
+
+\NormalTok{p.mat <-}\StringTok{ }\KeywordTok{cor.mtest}\NormalTok{(customers_cor)}\OperatorTok{$}\NormalTok{p}
+
+\NormalTok{col <-}\StringTok{ }\KeywordTok{colorRampPalette}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"#BB4444"}\NormalTok{, }\StringTok{"#EE9988"}\NormalTok{, }\StringTok{"#FFFFFF"}\NormalTok{, }\StringTok{"#77AADD"}\NormalTok{,}
+                          \StringTok{"#4477AA"}\NormalTok{))}
+
+\KeywordTok{corrplot}\NormalTok{(cormat, }\DataTypeTok{method =} \StringTok{"color"}\NormalTok{, }\DataTypeTok{col =} \KeywordTok{col}\NormalTok{(}\DecValTok{200}\NormalTok{),}
+         \DataTypeTok{type =} \StringTok{"full"}\NormalTok{, }\DataTypeTok{order =} \StringTok{"AOE"}\NormalTok{, }\DataTypeTok{number.cex =} \FloatTok{.7}\NormalTok{,}
+         \DataTypeTok{addCoef.col =} \StringTok{"black"}\NormalTok{, }\CommentTok{# Add coefficient of correlation}
+         \DataTypeTok{tl.col =} \StringTok{"black"}\NormalTok{, }\DataTypeTok{tl.srt =} \DecValTok{90}\NormalTok{, }\CommentTok{# Text label color and rotation}
+         \CommentTok{# Combine with significance}
+         \DataTypeTok{p.mat =}\NormalTok{ p.mat, }\DataTypeTok{sig.level =} \FloatTok{0.01}\NormalTok{, }
+         \CommentTok{# hide correlation coefficient on the principal diagonal}
+         \DataTypeTok{diag =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-23-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###je réalise la matrice des corrélation pour ces 3 variables par}
+\CommentTok{###raport à l'âge du client pour les 30-50 ans}
+
+\NormalTok{customers_cor<-}\KeywordTok{select}\NormalTok{(customers_age, }\OperatorTok{-}\StringTok{"categ_age"}\NormalTok{, }\OperatorTok{-}\StringTok{"n"}\NormalTok{)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(age}\OperatorTok{>}\DecValTok{30} \OperatorTok{&}\StringTok{ }\NormalTok{age}\OperatorTok{<=}\DecValTok{50}\NormalTok{)}
+
+\NormalTok{cormat <-}\StringTok{ }\KeywordTok{cor}\NormalTok{(customers_cor, }\DataTypeTok{method =} \StringTok{"pearson"}\NormalTok{)}
+
+\NormalTok{p.mat <-}\StringTok{ }\KeywordTok{cor.mtest}\NormalTok{(customers_cor)}\OperatorTok{$}\NormalTok{p}
+
+\NormalTok{col <-}\StringTok{ }\KeywordTok{colorRampPalette}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"#BB4444"}\NormalTok{, }\StringTok{"#EE9988"}\NormalTok{, }\StringTok{"#FFFFFF"}\NormalTok{, }\StringTok{"#77AADD"}\NormalTok{,}
+                          \StringTok{"#4477AA"}\NormalTok{))}
+
+\KeywordTok{corrplot}\NormalTok{(cormat, }\DataTypeTok{method =} \StringTok{"color"}\NormalTok{, }\DataTypeTok{col =} \KeywordTok{col}\NormalTok{(}\DecValTok{200}\NormalTok{),}
+         \DataTypeTok{type =} \StringTok{"full"}\NormalTok{, }\DataTypeTok{order =} \StringTok{"AOE"}\NormalTok{, }\DataTypeTok{number.cex =} \FloatTok{.7}\NormalTok{,}
+         \DataTypeTok{addCoef.col =} \StringTok{"black"}\NormalTok{, }\CommentTok{# Add coefficient of correlation}
+         \DataTypeTok{tl.col =} \StringTok{"black"}\NormalTok{, }\DataTypeTok{tl.srt =} \DecValTok{90}\NormalTok{, }\CommentTok{# Text label color and rotation}
+         \CommentTok{# Combine with significance}
+         \DataTypeTok{p.mat =}\NormalTok{ p.mat, }\DataTypeTok{sig.level =} \FloatTok{0.01}\NormalTok{, }
+         \CommentTok{# hide correlation coefficient on the principal diagonal}
+         \DataTypeTok{diag =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-24-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###je réalise la matrice des corrélation pour ces 3 variables par}
+\CommentTok{###raport à l'âge du client pour les >50 ans}
+
+\NormalTok{customers_cor<-}\KeywordTok{select}\NormalTok{(customers_age, }\OperatorTok{-}\StringTok{"categ_age"}\NormalTok{, }\OperatorTok{-}\StringTok{"n"}\NormalTok{)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{filter}\NormalTok{(age}\OperatorTok{>}\DecValTok{50}\NormalTok{)}
+
+\NormalTok{cormat <-}\StringTok{ }\KeywordTok{cor}\NormalTok{(customers_cor, }\DataTypeTok{method =} \StringTok{"pearson"}\NormalTok{)}
+
+\NormalTok{p.mat <-}\StringTok{ }\KeywordTok{cor.mtest}\NormalTok{(customers_cor)}\OperatorTok{$}\NormalTok{p}
+
+\NormalTok{col <-}\StringTok{ }\KeywordTok{colorRampPalette}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"#BB4444"}\NormalTok{, }\StringTok{"#EE9988"}\NormalTok{, }\StringTok{"#FFFFFF"}\NormalTok{, }\StringTok{"#77AADD"}\NormalTok{,}
+                          \StringTok{"#4477AA"}\NormalTok{))}
+
+\KeywordTok{corrplot}\NormalTok{(cormat, }\DataTypeTok{method =} \StringTok{"color"}\NormalTok{, }\DataTypeTok{col =} \KeywordTok{col}\NormalTok{(}\DecValTok{200}\NormalTok{),}
+         \DataTypeTok{type =} \StringTok{"full"}\NormalTok{, }\DataTypeTok{order =} \StringTok{"AOE"}\NormalTok{, }\DataTypeTok{number.cex =} \FloatTok{.7}\NormalTok{,}
+         \DataTypeTok{addCoef.col =} \StringTok{"black"}\NormalTok{, }\CommentTok{# Add coefficient of correlation}
+         \DataTypeTok{tl.col =} \StringTok{"black"}\NormalTok{, }\DataTypeTok{tl.srt =} \DecValTok{90}\NormalTok{, }\CommentTok{# Text label color and rotation}
+         \CommentTok{# Combine with significance}
+         \DataTypeTok{p.mat =}\NormalTok{ p.mat, }\DataTypeTok{sig.level =} \FloatTok{0.01}\NormalTok{, }
+         \CommentTok{# hide correlation coefficient on the principal diagonal}
+         \DataTypeTok{diag =} \OtherTok{FALSE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-25-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###J'effectue un test ANOVA pour calculer l'effet des categ d'âge}
+\CommentTok{###sur le montant total}
+\NormalTok{res.aov <-}\StringTok{ }\KeywordTok{aov}\NormalTok{( categ_age}\OperatorTok{%>%}\KeywordTok{as.factor}\NormalTok{()}\OperatorTok{%>%}\KeywordTok{as.numeric}\NormalTok{()}\OperatorTok{~}\StringTok{ }\NormalTok{montant_total,}
+                \DataTypeTok{data =}\NormalTok{ customers_age)}
+\KeywordTok{summary}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Df Sum Sq Mean Sq F value   Pr(>F)    
+## montant_total  1  18.08  18.078    53.3 5.97e-10 ***
+## Residuals     63  21.37   0.339                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Effect size}
+\KeywordTok{eta_squared}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## montant_total 
+##     0.4582948
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###J'effectue un test ANOVA pour calculer l'effet des categ d'âge}
+\CommentTok{###sur le panier moyen}
+\NormalTok{res.aov <-}\StringTok{ }\KeywordTok{aov}\NormalTok{(categ_age}\OperatorTok{%>%}\KeywordTok{as.factor}\NormalTok{()}\OperatorTok{%>%}\KeywordTok{as.numeric}\NormalTok{() }
+               \OperatorTok{~}\StringTok{ }\NormalTok{panier_moyen , }\DataTypeTok{data =}\NormalTok{ customers_age)}
+\KeywordTok{summary}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##              Df Sum Sq Mean Sq F value   Pr(>F)    
+## panier_moyen  1  9.246   9.246   19.29 4.39e-05 ***
+## Residuals    63 30.200   0.479                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Effect size}
+\KeywordTok{eta_squared}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## panier_moyen 
+##    0.2343986
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###J'effectue un test ANOVA pour calculer l'effet des categ d'âge}
+\CommentTok{###sur la fréquence}
+\NormalTok{res.aov <-}\StringTok{ }\KeywordTok{aov}\NormalTok{(categ_age}\OperatorTok{%>%}\KeywordTok{as.factor}\NormalTok{()}\OperatorTok{%>%}\KeywordTok{as.numeric}\NormalTok{() }
+               \OperatorTok{~}\StringTok{ }\NormalTok{frequence , }\DataTypeTok{data =}\NormalTok{ customers_age)}
+\KeywordTok{summary}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##             Df Sum Sq Mean Sq F value   Pr(>F)    
+## frequence    1   8.66   8.660   17.72 8.27e-05 ***
+## Residuals   63  30.79   0.489                     
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Effect size}
+\KeywordTok{eta_squared}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## frequence 
+## 0.2195515
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée un tableau afin de construire des histogrammes}
+
+\CommentTok{###Je calcul les gains pour chaque catégorie de livre pour chaque}
+\CommentTok{###catégorie d'âge et sexe}
+\NormalTok{categ_age_sex<-transactions}\OperatorTok{%>%}\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\NormalTok{(client_id }\OperatorTok{%in%}\StringTok{ }\NormalTok{big_customers))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(categ_age, sex, categ)}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{sum_price =} \KeywordTok{sum}\NormalTok{(price))}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{transmute}\NormalTok{(}
+    \DataTypeTok{age_sex =} \KeywordTok{paste}\NormalTok{(categ_age, sex, }\DataTypeTok{sep=}\StringTok{"_"}\NormalTok{),}
+    \DataTypeTok{categ =}\NormalTok{ categ,}
+    \DataTypeTok{sum_price =}\NormalTok{ sum_price)}
+
+\NormalTok{x<-transactions}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(client_id, age_sex)}\OperatorTok{%>%}\KeywordTok{summarise}\NormalTok{()}\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(age_sex)}\OperatorTok{%>%}\KeywordTok{count}\NormalTok{()}
+
+\NormalTok{categ_age_sex<-}\KeywordTok{inner_join}\NormalTok{(categ_age_sex, x)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Joining, by = "age_sex"
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###Je crée une colonne mean pour avoir les moyennes par client pour}
+\CommentTok{###catégorie}
+\NormalTok{categ_age_sex}\OperatorTok{$}\NormalTok{mean_price<-}
+\StringTok{  }\NormalTok{categ_age_sex}\OperatorTok{$}\NormalTok{sum_price}\OperatorTok{/}\NormalTok{categ_age_sex}\OperatorTok{$}\NormalTok{n}
+
+
+\CommentTok{###Je divise par 1000 pour plus de lisibilité}
+\NormalTok{categ_age_sex}\OperatorTok{$}\NormalTok{sum_price<-categ_age_sex}\OperatorTok{$}\NormalTok{sum_price}\OperatorTok{/}\DecValTok{1000}
+
+\CommentTok{###Je construit mon histogramme}
+\KeywordTok{ggplot}\NormalTok{(categ_age_sex, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age_sex, }\DataTypeTok{y =}\NormalTok{ mean_price)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color =}\NormalTok{ categ, }\DataTypeTok{fill =}\NormalTok{ categ),}
+                 \DataTypeTok{stat =} \StringTok{"identity"}\NormalTok{, }\DataTypeTok{width =} \FloatTok{0.5}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Catégories"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Dépense moyenne par client"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-29-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(categ_age_sex, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ categ_age, }\DataTypeTok{y =}\NormalTok{ mean_price)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color =}\NormalTok{ categ, }\DataTypeTok{fill =}\NormalTok{ categ),}
+                 \DataTypeTok{stat =} \StringTok{"identity"}\NormalTok{, }\DataTypeTok{width =} \FloatTok{0.5}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Catégories"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Dépense moyenne par client"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-30-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{ggplot}\NormalTok{(categ_age_sex, }\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ categ_age, }\DataTypeTok{y =}\NormalTok{ sum_price)) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{geom_bar}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{color =}\NormalTok{ categ, }\DataTypeTok{fill =}\NormalTok{ categ),}
+                 \DataTypeTok{stat =} \StringTok{"identity"}\NormalTok{, }\DataTypeTok{width =} \FloatTok{0.5}\NormalTok{) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{xlab}\NormalTok{(}\StringTok{"Catégories"}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{  }\KeywordTok{ylab}\NormalTok{(}\StringTok{"Dépense total par catégorie de client (en milliers)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{script_graphique_files/figure-latex/unnamed-chunk-31-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{###J'ai essayé de montrer la corrélation entre la part d'achat}
+\CommentTok{###dans chaque catégorie et l'âge (ou la categ d'âge) }
+\CommentTok{###mais je ne sais pas encore trop comment faire}
+\CommentTok{###Je n'ai pas eu le temps..}
+
+\CommentTok{###J'effectue un test ANOVA pour calculer l'effet des categ d'âge}
+\CommentTok{###sur les proportions d'achat par catégorie de livre}
+\NormalTok{res.aov <-}\StringTok{ }\KeywordTok{aov}\NormalTok{(categ_age}\OperatorTok{%>%}\KeywordTok{as.factor}\NormalTok{()}\OperatorTok{%>%}\KeywordTok{as.numeric}\NormalTok{()}
+               \OperatorTok{~}\StringTok{ }\NormalTok{montant_}\DecValTok{2} \OperatorTok{+}\StringTok{ }\NormalTok{montant_}\DecValTok{1}\NormalTok{,}
+               \DataTypeTok{data =}\NormalTok{ customers)}
+\KeywordTok{summary}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##               Df Sum Sq Mean Sq F value Pr(>F)    
+## montant_2      1 2887.1  2887.1   15925 <2e-16 ***
+## montant_1      1  731.3   731.3    4034 <2e-16 ***
+## Residuals   8597 1558.6     0.2                   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Effect size}
+\KeywordTok{eta_squared}\NormalTok{(res.aov)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## montant_2 montant_1 
+## 0.5576824 0.1412564
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,85 @@
+---
+title: "glm"
+author: "brunop31"
+date: "30/08/2020"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(pracma)
+library(dplyr)
+library(tilting)
+library(factoextra)
+library(FactoMineR)
+library(corrplot)
+library(caret)
+library(MASS)
+library(car)
+
+select<-dplyr::select
+
+```
+```{r}
+df_all<-read.csv(
+  "BRefRD_BH3_10B-236ech68s_2019-03_newLpn-Fmed300BG.csv",
+  encoding = "UTF-8", sep = ";", dec = ",")
+
+
+###On calcul les sommes par echantillon
+x<-df_all%>%select(-"Souche")%>%apply(1,sum)
+
+###on supprime les sans variance
+var_0<-which(apply(select(df_all,-"Souche"), 2, var)==0)%>%
+  as.data.frame()%>%select(num = ".")%>%mutate(sonde = row.names(.))
+
+df_all<-select(df_all, -var_0$sonde)
+
+###On scale les lignes
+y<-df_all%>%filter(x == 0)%>%select(-"Souche")
+
+z<-df_all%>%filter(x != 0)
+
+
+dfs_all<-z%>%select(-"Souche")%>%
+  apply(1, scale)%>%t()%>%
+  as.data.frame()
+
+colnames(dfs_all)<-colnames(y)
+
+dfs_all<-y%>%rbind(dfs_all, .)%>%
+  cbind(df_all$Souche,.)
+
+colnames(dfs_all)<-colnames(df_all)
+
+
+df_all<-dfs_all
+
+###On ajoute la colonne des sommes
+df_all<-df_all%>%cbind(x, .)
+
+###On scale la colonne somme
+df_all$x<-df_all$x%>%scale()
+```
+
+```{r}
+###je supprime les variables trop corrélées
+df_cor<-df_all%>%select(-"Souche")
+cormat <- cor(df_cor, method = "pearson")%>%as.data.frame()
+
+which(abs(cormat)>0.9, arr.ind = TRUE)%>%as.data.frame()%>%
+  filter(row != col)%>%filter(
+    !(col %in% c(2,3,7,9,10,13,14,15,24,29,30,49,52,
+                 62,17,65,66)))%>%
+  filter(!(row %in% c(2,3,7,9,10,13,14,15,24,29,30,49,
+                      52,62,17,65,66)))
+```
+```{r}
+df_all<-df_all%>%
+  select(-c(2,3,7,9,10,13,14,15,24,29,30,49,52,62,17,65,66))%>%
+  cbind(., df_all$Souche)%>%rename("Souche" = "df_all$Souche")
+
+model1<-(Souche~., data = df)
+```
+
+
+

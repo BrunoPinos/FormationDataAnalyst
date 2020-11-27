@@ -1,0 +1,35 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+<br>
+<br>
+**Question 6**
+```{r}
+dispint_veg2013<-read.csv("dispint_veg2013.csv", encoding = "UTF-8")
+
+dispint_veg2013_kcal<-
+  full_join(dispint_veg2013,
+            moyenne_ratio_e_p,
+            by = "Produit")%>%
+  transmute(Valeur = round(Valeur.x*Valeur.y*10^6,0))%>%
+  tidyr::drop_na()%>%
+  sum()
+
+dispint_veg2013_kcal
+
+```
+
+<br>
+<br>
+**Question 7**
+```{r}
+
+  
+ 
+
+
+```
+

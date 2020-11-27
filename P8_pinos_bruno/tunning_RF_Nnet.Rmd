@@ -1,0 +1,195 @@
+---
+title: "tunning"
+author: "brunop31"
+date: "16/09/2020"
+output: html_document
+---
+```{r, warning=FALSE, message = FALSE}
+library(knitr)
+opts_knit$set(progress=FALSE, verbose=FALSE) 
+
+library(ggplot2)
+library(dplyr)
+library(factoextra)
+library(FactoMineR)
+library(corrplot)
+library(caret)
+library(MASS)
+library(car)
+library(numbers)
+library(randomForest)
+library(nnet)
+
+select<-dplyr::select
+set.seed(1)
+```
+
+```{r}
+#Je récupère les données
+df_all<-read.csv(
+  "Dendris.csv",
+  encoding = "UTF-8", sep = ",", dec = ".")%>%select(-"X")
+
+#J'applique la fonction X -> log(X+1) à mes données
+mat_log<-df_all%>%select(-"Souche")%>%
+  apply(c(1,2), function(x) log10(x+1)%>%round(2))
+
+
+#Je crée une table avec les valeurs log transformées
+df_log<-cbind(df_all$Souche,mat_log%>%as.data.frame())%>%
+  rename("Souche" = "df_all$Souche")
+
+```
+
+```{r, message = FALSE, results='hide'}
+#J'effectue 100 cross-validations pour les 5 modèles choisis 
+#avec mes données en log
+
+####################Test des 5 modèles choisis en log#######################
+
+i = 1
+j = 1
+k = 1
+n = 1
+siz<-c(1, 5, 15, 25, 50, 60)
+dec<-c(5e-10, 5e-20, 5e-40, 5e-60, 5e-80)
+d<-data.frame()
+
+for(j in 1:5){
+    for(k in 1:6){
+      b4 = c()
+      c = c()
+      for (i in 1 : 50) {
+  
+      #Je partitionne mes données de façon égalitaire pour chaque souche
+      #en 2, une partition test et une entrainement
+      training.samples <- df_log$Souche %>%
+        createDataPartition(p = 0.7, list = FALSE)
+      
+      samp<-training.samples[,1]
+      
+      train.data <- df_log[training.samples, ]
+      
+      test.data <- df_log[-training.samples, ]
+      
+      var_0<-which(apply(select(train.data,-"Souche"), 2, var)==0)%>%
+        as.data.frame()%>%select(num = ".")%>%mutate(sonde = row.names(.))
+      
+      train.data<-select(train.data, -var_0$sonde)
+      test.data<-select(test.data, -var_0$sonde)
+      
+      # Estimate preprocessing parameters
+      preproc.param <- train.data %>% 
+        preProcess(method = c("center", "scale"))
+      # Transform the data using the estimated parameters
+      train.transformed <- preproc.param %>% predict(train.data)
+      test.transformed <- preproc.param %>% predict(test.data)
+      
+      df.transformed<-rbind(train.transformed,test.transformed)
+      
+      
+      ###############Fit the model4 nnet #################################
+      model4 <- nnet(Souche ~., train.transformed, size = siz[k],
+                     rang = 0.5,decay = dec[j], maxit = 200,
+                    MaxNWts = 100000000, abstol = 1)
+      
+      predictions<-model4 %>% predict(test.transformed)
+      
+      x<-colnames(predictions)[apply(predictions, 1, which.max)]
+      
+      b4<-c(b4, x)
+      
+      #################################################################
+      
+      #Je récupère les étiquettes
+      c<-c(c,test.data$Souche%>%as.vector())
+      i = i + 1
+      }
+    d[n, "modele"]<-paste("size",siz[k],"decay",dec[j])  
+    d[n, "accuracy"]<-mean(b4 == c)
+    n = n + 1
+    }
+}
+
+```
+
+
+
+
+```{r, message = FALSE}
+#J'affiche les résultats
+d%>%arrange(desc(accuracy))
+
+#J'effectue 100 cross-validations pour les 5 modèles choisis 
+#avec mes données en log
+
+####################Test des 5 modèles choisis en log#######################
+
+i = 1
+j = 1
+k = 1
+n = 1
+tree<-c(100, 300, 500, 1000, 1500, 2000)
+try<-c(2,5,8,10,15)
+e<-data.frame()
+
+for(j in 1:5){
+    for(k in 1:6){
+      b3 = c()
+      c = c()
+      for (i in 1 : 50) {
+  
+      #Je partitionne mes données de façon égalitaire pour chaque souche
+      #en 2, une partition test et une entrainement
+      training.samples <- df_log$Souche %>%
+        createDataPartition(p = 0.7, list = FALSE)
+      
+      samp<-training.samples[,1]
+      
+      train.data <- df_log[training.samples, ]
+      
+      test.data <- df_log[-training.samples, ]
+      
+      var_0<-which(apply(select(train.data,-"Souche"), 2, var)==0)%>%
+        as.data.frame()%>%select(num = ".")%>%mutate(sonde = row.names(.))
+      
+      train.data<-select(train.data, -var_0$sonde)
+      test.data<-select(test.data, -var_0$sonde)
+      
+      # Estimate preprocessing parameters
+      preproc.param <- train.data %>% 
+        preProcess(method = c("center", "scale"))
+      # Transform the data using the estimated parameters
+      train.transformed <- preproc.param %>% predict(train.data)
+      test.transformed <- preproc.param %>% predict(test.data)
+      
+      df.transformed<-rbind(train.transformed,test.transformed)
+      
+      
+      ################# Fit the model3 Random forest########################
+      model3 <- randomForest(Souche ~., train.transformed, mtry = try[j],
+                       ntree = tree[k])
+
+      b3<-c(b3, predict(model3, test.transformed)%>%as.vector())
+      
+      #################################################################
+      
+      #Je récupère les étiquettes
+      c<-c(c,test.data$Souche%>%as.vector())
+      i = i + 1
+      }
+    e[n, "modele"]<-paste("ntree",tree[k],"mtry",try[j])  
+    e[n, "accuracy"]<-mean(b3 == c)
+    n = n + 1
+    }
+}
+
+#J'affiche les résultats
+e%>%arrange(desc(accuracy))
+```
+
+
+
+
+
+

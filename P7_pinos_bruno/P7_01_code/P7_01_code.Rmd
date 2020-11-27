@@ -1,0 +1,761 @@
+---
+title: "P7"
+author: "brunop31"
+date: "22/07/2020"
+output: html_document
+---
+```{r, warning=FALSE, message=FALSE}
+
+###On télécharge les libraries utiles
+library(dplyr)
+library(ggplot2)
+library(gglorenz)
+library(tidyr)
+library(reshape2)
+library(reldist)
+library(rstatix)
+library(car)
+library(lmtest)
+library(olsrr)
+library(nortest)
+library(corrplot)
+select<-dplyr::select
+```
+
+```{r}
+###Mission 1#########################################################
+
+###On charge le tableau principal du projet de la WID
+df<-read.csv("data-projet7.csv")
+
+df$income<-df$income%>%as.vector()%>%sub(",",".",.)%>%
+  as.numeric()
+
+df$gdpppp<-df$gdpppp%>%as.vector()%>%sub(",",".",.)%>%
+  as.vector()%>%as.numeric()
+
+###Je supprime les pays dont les données sont trop éloignées de 2008
+###car mon étude est faite sur cette année là
+###Je supprime des pays qui poseront problème plutard
+df<-filter(df, year_survey %in% 2006:2010)%>%
+  filter(!(country %in% c("FJI", "XKX", "PSE")))
+
+###J'augmente de 3.6% les revenu de 2006 car la croissance du gdpppp
+###mondial a été de 3.6% entre 2006 et 2008
+df[df$year_survey == 2006,"gdpppp"]<-
+  df[df$year_survey == 2006,"gdpppp"]*1.036
+
+df[df$year_survey == 2006,"income"]<-
+  df[df$year_survey == 2006,"income"]*1.036
+
+###Je divise par 0.97 les pays étudié en 2009 car le gdpppp mondiale
+###a chuté de 3% entre 2008 et 2009
+df[df$year_survey == 2009,"gdpppp"]<-
+  df[df$year_survey == 2009,"gdpppp"]/0.97
+
+df[df$year_survey == 2009,"income"]<-
+  df[df$year_survey == 2009,"income"]/0.97
+
+###Les autres variations sont négligeable je laisse les données 2007 et 
+###2011 telles quelles
+
+###Je considère que mes données correspondent à l'année 2008
+###après les ajustements
+df$year_survey<-2008
+
+###Je fait des vérification sur les na et le nombre de ligne par pays
+sapply(df,function(x) sum(is.na(x)))
+
+df%>%group_by(country)%>%count()
+df%>%group_by(year_survey)%>%count()
+
+###Il manquait un percentile à la lituanie je les ajouté en faisant
+###la moyenne du précédant et du suivant
+df<-df%>%rbind(df[5940,])   
+
+df[11100,"quantile"]<-41
+
+df[11100,"income"]<-(4868.4507 + 4895.8306)/2
+
+df<-df%>%arrange(country, quantile)
+
+rownames(df)<-1:11100
+
+sapply(df,function(x) sum(is.na(x)))
+
+
+```
+
+```{r, warning=FALSE}
+###Je charge une table pour faire la correspondance entre 
+###l'écriture en 3 lettres des pays et le nom complet
+country_full<-read.csv("sql-pays.csv", encoding = "UTF-8", header = FALSE)%>%
+  select("country" = V4, "country_full" = V5)
+
+country_full$country<-country_full$country%>%as.vector()
+country_full$country_full<-country_full$country_full%>%as.vector()
+
+###J'en ajoute deux qui sont présent dans mon étude et pas sur le fichier
+country_full[242,]<-c("SRB","Serbie")
+country_full[243,]<-c("MNE","Monténégro")
+
+###Je change le nom de la macédoine du nord (trop long)
+country_full[country_full$country == "MKD", "country_full"]<-"Macédoine du Nord"
+
+###Je fait une jointure entre mes deux tables pour ajouter la colonne
+###nom complet a ma table de base
+dfs<-inner_join(country_full,df)
+```
+
+```{r}
+
+###Je charge une table de la FAO avec la pop en 2008 des pays
+fao<-read.csv("pop_2008.csv",
+              encoding = "UTF-8")%>%
+  select("country_full" = "Zone", "pop" = "Valeur")
+
+###Je modifie les country_full qui ne correspondent pas exactement
+fao$country_full<-fao$country_full%>%as.vector()
+
+fao$country_full[fao$country_full == "États-Unis d'Amérique"]<-"États-Unis"
+
+fao$country_full[fao$country_full == 
+               "Bolivie (État plurinational de)"]<-"Bolivie"
+
+fao$country_full[fao$country_full == "République centrafricaine"]<-
+  "République Centrafricaine"
+
+fao$country_full[fao$country_full == "Chine, continentale"]<-"Chine"
+
+fao$country_full[fao$country_full == "Chine, Taiwan Province de"]<-
+  "Taïwan"
+
+fao$country_full[fao$country_full == "République démocratique du Congo"]<-
+  "République Démocratique du Congo"
+
+fao$country_full[fao$country_full == "Tchéquie"]<-"République Tchèque"
+
+fao$country_full[fao$country_full == "République dominicaine"]<-
+  "République Dominicaine"
+
+fao$country_full[fao$country_full == "Iran (République islamique d')"]<-
+  "République Islamique d'Iran"
+
+fao$country_full[fao$country_full == "République démocratique populaire lao"]<-
+  "République Démocratique Populaire Lao"
+
+fao$country_full[fao$country_full == "Soudan (ex)"]<-"Soudan"
+
+fao$country_full[fao$country_full == "Eswatini"]<-"Swaziland"
+
+fao$country_full[fao$country_full == "République arabe syrienne"]<-
+  "République Arabe Syrienne"
+
+fao$country_full[fao$country_full == 
+  "Royaume-Uni de Grande-Bretagne et d'Irlande du Nord"]<-
+  "Royaume-Uni"
+
+fao$country_full[fao$country_full == 
+               "Venezuela (République bolivarienne du)"]<-"Venezuela"
+	
+
+###Je fais une jointure entre ma table principale et la table de la FAO
+###pour obtenir ma colonne pop
+df<-inner_join(dfs,fao)
+
+###Je test si il me manque des pays 
+filter(dfs, !(dfs$country_full %in% df$country_full))%>%select(country_full)%>%
+  distinct()
+```
+
+```{r}
+###Je calcul le nombre de pays analysé dans l'étude
+pays_analyse<-nrow(df)/100
+
+###Je calcul la pop analysée dans l'étude
+pop_analyse<-sum(df$pop)/100
+
+###Je calcul le pourcentage de pop analysé dans l'étude
+prct_pop<-pop_analyse*100/7041194.301
+```
+
+```{r}
+###Mission2##########################################################
+
+###Je cré un vecteur avec les pays qui vont m'intéresser plus
+###particulièrement pour la suite
+liste_pays<-c("FRA","SWE","BRA","JPN","DEU","USA","GHA","COL","UGA",
+              "BOL")
+              
+###Je cré une table avec seulement ces pays là
+dff<-df%>%filter(country %in% 
+  liste_pays)
+
+###Je trace la courbe du revenu par rapport à la classe pour mes 10 pays
+ggplot(dff,
+       aes(x = quantile, y = income))+
+  geom_line(aes(colour = country))
+```
+```{r}
+###Je trace la même chose mais avec une échelle log10
+ggplot(dff,
+       aes(x = quantile, y = income))+
+  geom_line(aes(colour = country)) +
+  scale_y_continuous(trans='log10') 
+```
+
+```{r}
+###Je trace les courbe de lorenz de ces pays
+ggplot(dff, aes(income)) + 
+  stat_lorenz(aes(colour = country)) + 
+  geom_abline(color = "grey") + 
+  xlab("Distribution cumulative de la population") +
+  ylab("Distribution cumulative du revenu")
+  
+```
+
+```{r, warning=FALSE}
+###Je crée une colonne gini dans ma table principale et je la
+###remplis en calculant les indices de chaque pays
+df$gini<-0
+
+for (i in 0:pays_analyse-1){
+  df$gini[(i*100+1):((i+1)*100)]<-
+    round(gini(df[row.names(df) == 
+                    (i*100+1):((i+1)*100),"income"])*100,1)
+}
+
+###Je crée une table rank qui classe les pays par indice de gini
+rank<-df%>%group_by(country_full,gini)%>%count()%>%
+  arrange(gini)%>%cbind(row.names(.))%>%
+  rename(rank = "...4")
+
+rank$rank<-rank$rank%>%as.numeric()
+
+###Les 5 pays avec l'indice de gini le plus faible
+top5_gini<-rank[1:5,1:2]
+
+###Les 5 pays avec l'indice de gini le plus élevé
+worst5_gini<-rank[(nrow(rank)-4):nrow(rank),1:2]%>%arrange(desc(gini))
+
+
+###le rank de l'indice de gini de la france
+fr_rank<-rank[rank$country_full == "France", c("country_full", "rank")]
+```
+
+```{r}
+###Je charge une table contenant les indices de gini de nombreux
+###pays sur plusieurs années
+gini<-read.csv("gini_index.csv", encoding = "UTF-8", skip = 4)%>%
+      select(-"X")
+
+###Je ne garde que depuis 1970 pas assez de données pour les dates
+###précédentes
+gini<-select(gini, c(2,15:64))
+
+###Je réorganise le tableau et je le mets en forme
+gini<-melt(data = gini, id.vars = 1, 
+                 measure.vars = 2:51)
+
+gini$variable<-gsub("^.","",gini$variable)
+
+
+colnames(gini)<-c("country","annee","gini")
+
+gini$annee<-gini$annee%>%as.numeric()
+
+###je supprime les NAs pour que mon graphe relie tous les points
+###même ceux séparer par plusieurs années
+gini<-gini%>%na.omit()
+
+###Je trace le graph des indices de gini de mes 10 pays par rapport 
+###à l'année
+ggplot(gini%>%filter(country %in%
+  c("FRA","SWE","BRA","DEU","USA","GHA","COL","UGA","BOL")),
+  aes(x = annee, y = gini ))+
+  geom_line(aes(colour = country))
+```
+
+```{r}
+###Mission 3########################################################
+
+###Je classe mes pays par région
+amerique_latine<-read.csv("amerique_latine.csv",
+              encoding = "UTF-8")%>%
+  select("country_full" = "Zone")
+
+amerique_latine$region<-"amerique_latine"
+
+europe<-read.csv("europe.csv",
+              encoding = "UTF-8")%>%
+  select("country_full" = "Zone")
+
+europe$region<-"europe"
+
+asie<-read.csv("asie.csv",
+              encoding = "UTF-8")%>%
+  select("country_full" = "Zone")
+
+asie$region<-"asie"
+
+afrique<-read.csv("afrique.csv",
+              encoding = "UTF-8")%>%
+  select("country_full" = "Zone")
+
+afrique$region<-"afrique"
+
+fao_region<-rbind(afrique,asie,europe,amerique_latine)
+
+
+fao_region%>%group_by(country_full)%>%count()
+
+
+fao_region$country_full<-fao_region$country_full%>%as.vector()
+
+fao_region$country_full[fao_region$country_full == 
+                      "États-Unis d'Amérique" ]<-"États-Unis"
+
+fao_region$country_full[fao_region$country_full == 
+               "Bolivie (État plurinational de)"]<-"Bolivie"
+
+fao_region$country_full[fao_region$country_full == "République centrafricaine"]<-
+  "République Centrafricaine"
+
+fao_region$country_full[fao_region$country_full == "Chine, continentale"]<-"Chine"
+
+fao_region$country_full[fao_region$country_full == "Chine, Taiwan Province de"]<-
+  "Taïwan"
+
+fao_region$country_full[fao_region$country_full == "République démocratique du Congo"]<-
+  "République Démocratique du Congo"
+
+fao_region$country_full[fao_region$country_full == "Tchéquie"]<-"République Tchèque"
+
+fao_region$country_full[fao_region$country_full == "République dominicaine"]<-
+  "République Dominicaine"
+
+fao_region$country_full[fao_region$country_full == "Iran (République islamique d')"]<-
+  "République Islamique d'Iran"
+
+fao_region$country_full[fao_region$country_full == "République démocratique populaire lao"]<-
+  "République Démocratique Populaire Lao"
+
+fao_region$country_full[fao_region$country_full == "Soudan (ex)"]<-"Soudan"
+
+fao_region$country_full[fao_region$country_full == "Eswatini"]<-"Swaziland"
+
+fao_region$country_full[fao_region$country_full == "République arabe syrienne"]<-
+  "République Arabe Syrienne"
+
+fao_region$country_full[fao_region$country_full == 
+  "Royaume-Uni de Grande-Bretagne et d'Irlande du Nord"]<-
+  "Royaume-Uni"
+
+fao_region$country_full[fao_region$country_full == 
+               "Venezuela (République bolivarienne du)"]<-"Venezuela"
+	
+
+dfs<-inner_join(df,fao_region)
+
+sapply(df,function(x) sum(is.na(x)))
+
+filter(df, !(df$country %in% dfs$country))
+
+df<-dfs
+
+df$region[df$country %in% c("FIN","SWE","NOR","ISL","DNK")]<-
+  "europe_nord"
+
+df$region[df$country %in% c("USA","CAN")]<-"amerique_nord"
+```
+
+```{r}
+###J'attribut à chaque pays uun coef d'élasticité celon sa région
+df$elasticite[df$region %in% c("afrique","amerique_latine")] <- 0.66
+df$elasticite[df$region == "europe" | df$country == "USA"] <- 0.4
+df$elasticite[df$region %in% c("asie")] <- 0.5
+df$elasticite[df$region %in% c("europe_nord")| df$country == "CAN"] <- 0.2
+
+sapply(df,function(x) sum(is.na(x)))
+```
+```{r fonction proba cond}
+###Je crée une fonction qui me permet de créer les tables de proba
+###conditionnelles celon le coef, le nbre de quantile et le nombre
+###d'individu par quantile
+f_proba<-function(rho_j, nb_quantile, ind_quantile){
+
+set.seed(100)
+  
+n<-nb_quantile*ind_quantile
+ln_y_parent<-rnorm(n,0,1)
+epsilon<-rnorm(n,0,1)
+alpha<-0
+
+
+y_child<-exp(alpha + rho_j*ln_y_parent + epsilon)
+y_parent<-exp(ln_y_parent)
+
+
+table<-data.frame(y_child,y_parent)
+table$num<-row.names(table)
+
+x<-arrange(table, y_child)
+x$quantile<-trunc((row.names(x)%>%as.numeric()-1)/(n/nb_quantile))+1
+
+y<-arrange(table, y_parent)
+y$quantile<-trunc((row.names(x)%>%as.numeric()-1)/(n/nb_quantile))+1
+
+table<-inner_join(x,y, by = c("num","y_child","y_parent"))%>%
+  select("c_i_child" = "quantile.x", "c_i_parent" = "quantile.y")
+  
+table<-table%>%group_by(c_i_child,c_i_parent)%>%count()
+
+x<-data.frame(c_i_child = factor(1:nb_quantile),
+              c_i_parent = factor(1:nb_quantile))
+
+y<-expand(x, c_i_child, c_i_parent)
+
+table$c_i_child<- table$c_i_child%>%as.factor()
+table$c_i_parent<- table$c_i_parent%>%as.factor()
+
+table<-full_join(table,y)
+
+table$n[is.na(table$n)]<-0 
+table$proba_cond<-table$n/(n/nb_quantile)
+
+table
+}
+
+a<-f_proba(0.9, 100, 1000)
+
+```
+
+```{r}
+###Je crée deux tables et je dessine les histogrammes associés
+table_proba_cond0.1<-f_proba(0.1, 10, 1000)
+table_proba_cond0.9<-f_proba(0.9, 10, 1000)
+
+
+ggplot(table_proba_cond0.1,
+       aes(c_i_parent, proba_cond, fill = desc(c_i_child)%>%as.factor()))+
+  geom_bar(stat = "identity") + labs( fill = "c_i_child")
+```
+```{r}
+ggplot(table_proba_cond0.9,
+       aes(c_i_parent, proba_cond, fill = desc(c_i_child)%>%as.factor()))+
+  geom_bar(stat = "identity") + labs( fill = "c_i_child")
+```
+
+
+```{r fonction pour creer table}
+###Mission 4#########################################################
+
+###Je crée une fonction qui me permet d'ajouter la colonne c_i_parent
+###dans ma table principale.
+###La fonction crée la classe de revenu de 50000 parents 500 pour chaque
+###quantile celon un coef d'élasticité donné 
+f<-function(rho_j){
+
+    
+nb_quantile<-100
+n<-nb_quantile*500
+ln_y_parent<-rnorm(n,0,1)
+epsilon<-rnorm(n,0,1)
+alpha<-0
+
+
+y_child<-exp(alpha + rho_j*ln_y_parent + epsilon)
+y_parent<-exp(ln_y_parent)
+
+
+table<-data.frame(y_child,y_parent)
+table$num<-row.names(table)
+
+x<-arrange(table, y_child)
+x$quantile<-trunc((row.names(x)%>%as.numeric()-1)/(n/nb_quantile))+1
+
+y<-arrange(table, y_parent)
+y$quantile<-trunc((row.names(x)%>%as.numeric()-1)/(n/nb_quantile))+1
+
+table<-inner_join(x,y, by = c("num","y_child","y_parent"))%>%
+  select("c_i_child" = "quantile.x", "c_i_parent" = "quantile.y")
+
+table$c_i_parent
+}
+```
+
+```{r}
+###Je crée une fonction pour pouvoir répéter la fonction précédente
+###de façon aléatoire un nombre de fois donné pour un coef donné
+rep_f<-function(x, n){
+b<-c()
+for (i in 1:n) {
+
+  b<-c(b,f(x))
+}
+b    
+} 
+```
+
+
+```{r duplication individu création table parent}
+###Je clone 500 fois chaque individu
+df500<-df[rep(1:nrow(df), each = 500),]%>%rename("c_i_child" ="quantile")
+
+###Je compte combien de pays sont associés à chaque coef d'élasticité
+n0.2<-df%>%filter(elasticite == 0.2)%>%nrow()/100
+n0.4<-df%>%filter(elasticite == 0.4)%>%nrow()/100
+n0.5<-df%>%filter(elasticite == 0.5)%>%nrow()/100
+n0.66<-df%>%filter(elasticite == 0.66)%>%nrow()/100
+
+###Je crée ma colonne c_i_parent pour mes 5550000 enfants en répétant
+###la fonction f autant de fois qu'il y a de pays par coef
+a1<-rep_f(0.2,n0.2)
+a2<-rep_f(0.4,n0.4)
+a3<-rep_f(0.5,n0.5)
+a4<-rep_f(0.66,n0.66)
+
+###Je crée la colonne en ordonnant du plus petit coef au plus grand
+c_i_parent<-c(a1,a2,a3,a4)
+
+###Je colle ma colonne en ordonnant ma table principale de la même façon
+###pour que ça corresponde
+df500<-cbind(df500%>%arrange(elasticite),c_i_parent)
+```
+
+```{r, fonction pour faire les graphes et tests}
+###Je crée une fonction qui fait les tests et graphs de regression linéaire
+f_graph<- function(fit, p){
+
+df_function<-fit$model  
+alpha <- 0.05
+n <- dim(df_function)[1]
+analyses <- data.frame(obs= 1:n)
+analyses$levier <- hat(model.matrix(fit))
+seuil_levier <- 2*p/n
+
+analyses$rstudent <- rstudent(fit)
+seuil_rstudent <- qt(1-alpha/2,n-p-1)
+
+influence <- influence.measures(fit)
+names(influence)
+colnames(influence$infmat)
+
+analyses$dcook <- influence$infmat[,"cook.d"]
+seuil_dcook <- 4/(n-p)
+
+layout(matrix(1:4, 2, 2))
+
+
+return(
+  list(
+   plot(fit),
+    
+    ggplot(data.frame(fit$residuals),aes(fit.residuals)) + 
+ geom_histogram(aes(y=..count..), colour="blue", fill= "white")+
+  geom_vline(aes(xintercept=mean(fit.residuals), color="red"))+
+  xlab("Residuals values")+ ylab("Number of residuals"),
+    
+ggplot(data=analyses,aes(x=obs, y=levier))+
+   geom_bar(stat="identity",colour="steelblue")+
+   geom_hline(yintercept=seuil_levier,col="red")+
+   theme_minimal()+
+   xlab("Observation")+
+   ylab("Leviers")+
+   scale_x_continuous(breaks=seq(0,n,by=5)),
+
+ggplot(data=analyses,aes(x=obs,y=rstudent))+
+  geom_bar(stat="identity",colour="steelblue")+
+  geom_hline(yintercept=-seuil_rstudent,col="red")+
+  geom_hline(yintercept=seuil_rstudent,col="red")+
+  theme_minimal()+
+  xlab("observation")+
+  ylab("Résidus studentisés")+
+  scale_x_continuous(breaks=seq(0,n,by=5)),
+
+summary(fit),
+
+vif(fit),
+
+shapiro.test(sample(fit$residuals,5000)),
+
+ad.test(fit$residuals),
+
+ks.test(fit$residuals, "pnorm")
+)
+)
+}
+```
+
+```{r anova}
+###Je fais des regressions linéaires pour expliquer au mieux
+###la variable income.
+
+###Anova income ~ country
+fit_aov<-lm(income ~ country, df)
+
+###Graphe analyse résidus
+layout(matrix(1:4, 2, 2))
+plot(fit_aov)
+
+###test normalité résidu
+shapiro.test(sample(fit_aov$residuals,5000))
+
+ad.test(fit_aov$residuals)
+
+ks.test(fit_aov$residuals, "pnorm")
+
+
+###test homogénéité résidu
+fligner.test(residuals(fit_aov)~df$country)
+
+bartlett.test(residuals(fit_aov)~df$country)
+
+###Analyse
+summary(fit_aov)
+```
+
+```{r lm}
+###regression linéaire
+fit<-lm(income~ gdpppp + gini, df)
+
+###les test et graphiques
+f_graph(fit, 2)
+```
+
+```{r lm ln}
+###regression linéaire
+fit_ln<-lm(log(income)~ log(gdpppp) + gini, df)
+
+###les test et graphiques
+f_graph(fit_ln, 2)
+```
+
+
+
+```{r revenu parent + ln}
+###regression linéaire
+fit500_ln<-lm(log(income)~ log(gdpppp) + gini + c_i_parent,df500)
+
+###résumé analyse
+summary(fit500_ln)
+```
+
+```{r}
+###regression linéaire(sur 11100 pays au hasard)
+###graphiques et test trop long sur l'ensemble (résultat très proche)
+fit500_ln_<-lm(log(income)~ log(gdpppp) + gini + c_i_parent,
+              df500[sample(1:nrow(df500),11100),])
+
+
+###les graphiques et tests
+f_graph(fit500_ln_, 3)
+```
+
+
+```{r}
+###Je crée une fonction pour analyser les résidues studentiser en valeur
+###absolu
+
+lm_analyse<- function(df, fit){
+
+df$rstudent <- rstudent(fit)%>%abs()
+
+df
+}
+```
+
+```{r}
+###je crée la colonne rstudent qui donne la valeur absolue de la valeur
+###du résidu studentisé
+df_rstudent<-lm_analyse(df500, fit500_ln)
+
+x<-df%>%select(-"income",-"quantile",-"nb_quantiles")%>%distinct()
+
+###Je somme les erreurs par pays
+df_rstudent_sum<-df_rstudent%>%group_by(country_full)%>%
+  summarise(error = sum(rstudent))%>%inner_join(x)
+
+
+```
+
+```{r}
+
+fit_error<-lm(error~ gini, df_rstudent_sum)
+
+###Analyse
+summary(fit_error)
+
+###Graphe analyse résidus
+layout(matrix(1:4, 2, 2))
+plot(fit_error)
+
+df_rstudent_sum2<-df_rstudent_sum%>%
+  filter(row.names(df_rstudent_sum) != 101)
+```
+
+```{r}
+fit_error2<-lm(error~ gini, df_rstudent_sum2)
+
+###Analyse
+summary(fit_error2)
+
+###Graphe analyse résidus
+layout(matrix(1:4, 2, 2))
+plot(fit_error2)
+```
+
+```{r}
+###je réalise la matrice des corrélation de l'erreur et des variables
+###propre à chaque pays
+df_cor<-select(df_rstudent_sum2,
+               c("gini","gdpppp","elasticite",
+                 "error","pop"))
+cormat <- cor(df_cor, method = "pearson")
+p.mat <- cor.mtest(df_cor)$p
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD",
+"#4477AA"))
+corrplot(cormat, method = "color", col = col(200),
+type = "full", order = "original", number.cex = .7,
+addCoef.col = "black", # Add coefficient of correlation
+tl.col = "black", tl.srt = 90, # Text label color and rotation
+# Combine with significance
+p.mat = p.mat, sig.level = 0.05,
+# hide correlation coefficient on the principal diagonal
+diag = FALSE)
+```
+
+```{r}
+df500_gini<-df500%>%filter(gini<35)
+
+fit500_ln_gini<-lm(log(income)~ log(gdpppp) + gini + c_i_parent,
+                 df500_gini)
+
+summary(fit500_ln_gini)
+```
+
+
+```{r}
+###regression linéaire(sur 11100 pays au hasard)
+###graphiques et test trop long sur l'ensemble (résultat très proche)
+fit500_gini_<-lm(log(income)~ log(gdpppp) + gini + c_i_parent,
+              df500_gini[sample(1:nrow(df500_gini),11100),])
+
+
+###les graphiques et tests
+f_graph(fit500_gini_, 3)
+
+###Un modèle basé sur les pays ayant un indice de gini inférieur
+###à 35 donne une meilleur prédiction sur ces pays là
+```
+
+```{r}
+df500_gini<-df500%>%filter(gini>35)
+fit500_ln_gini<-lm(log(income)~ log(gdpppp) + gini + c_i_parent,
+                 df500_gini)
+
+summary(fit500_ln_gini)
+
+###Un modèle basé sur les pays ayant un indice de gini suérieur
+###à 35 donne une moins bonne prédiction sur ces pays là
+```

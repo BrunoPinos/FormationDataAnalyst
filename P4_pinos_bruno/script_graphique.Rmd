@@ -1,0 +1,500 @@
+---
+title: "script_graphique"
+author: "brunop31"
+date: "26/05/2020"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+```{r, warning=FALSE, message=FALSE}
+library(ppcor)
+library(pwr)
+library(plyr)
+library(sjstats)
+library(dplyr)
+library(DT)
+library(reshape)
+library(splitstackshape)
+library(ggplot2)
+library(scales)
+library(ineq)
+library(zoo)
+library(cluster)
+library(corrplot)
+library(Hmisc)
+library("ggpubr")
+library(rstatix)
+library(BioStatR)
+library(reshape)
+library(questionr)
+library("FactoMineR")
+library("factoextra")
+library("gplots")
+library(tidyr)
+library(gglorenz)
+```
+
+```{r}
+###Je charge les tableaux creer dans mon script nettoyage
+load("table_p4")
+
+###Je calcul des mesures de tendances et de dispersions
+
+###Sur les gains par jour avant le 02/10
+summary(filter(nbre_date, date < "2021-10-02")$price)
+
+###Sur les gains par jour entre le 02/10 et le 27/10
+summary(filter(nbre_date, date > "2021-10-02" &
+                 date < "2021-10-27")$price)
+
+###Sur les gains par jour avant le 02/10
+summary(filter(nbre_date_categ, date < "2021-10-02" & categ == 1)$n)
+
+###Sur les gain par jour sur toute la période
+summary(nbre_date$price)
+
+summary(customers_age$n)
+```
+
+```{r}
+###Je crée un violin plot pour mesurer la dispersion des aages des client
+###par achat en fonction de leur âge pour chaque catégorie
+
+###Je filtre les gros clients et les clients de 18 ans trop nombreux
+ggplot((products),
+       aes(x = categ , y = price, fill = categ)) +
+  geom_boxplot(width=0.4)+
+  labs(x="Catégorie de livre", y = "Prix des produits")+ stat_summary(fun.y=mean, geom="point", shape=23, size=2) 
+
+```
+
+```{r}
+###Je crée un violin plot pour mesurer la dispersion des aages des client
+###par achat en fonction de leur âge pour chaque catégorie
+
+###Je filtre les gros clients et les clients de 18 ans trop nombreux
+ggplot(filter(transactions,!(client_id %in% big_customers),
+              age != 18),
+       aes(x = categ, y = age, fill = categ)) +
+  geom_violin(trim=FALSE)+
+  geom_boxplot(width=0.1, fill="white")+
+  labs(x="Catégorie de livre", y = "Age des clients par achat") 
+
+```
+
+
+```{r}
+###Je crée une représentation de série temporelle, les gains par jours
+ggplot(nbre_date, aes(date, roll7)) +
+  geom_line(col = "royalblue3") + xlab("Date") + 
+  ylab("Gain par jour (en euros)")
+```
+
+
+```{r}
+
+###Je regarde le nombre de livre vendu par jour entre le 14/08 et le01/11
+ggplot(nbre_date_categ, aes(date, n)) +
+  geom_line(aes(colour = categ))+
+  scale_x_date(breaks = date_breaks("month"), 
+               limits = c(as.Date("2021-08-14"),as.Date("2021-11-01")),
+  labels = date_format("%d-%m")) +
+  ylab("Nombre de livres vendus") + xlab("Année 2021 ")
+```
+
+
+
+```{r}
+###Je crée une courbe de Lorenz pour étudié la répartition des gains
+###par rapport aux produits vendu
+ggplot(products, aes(n_price)) + 
+  stat_lorenz() + 
+  geom_abline(color = "grey") + 
+  xlab("Pourcentages cumulés des produits") +
+  ylab("Pourcentages cumulés des gains") +
+  scale_x_continuous(breaks = round(seq(0, 1, by = 0.5),1),
+                     labels = percent) +
+  scale_y_continuous(breaks = round(seq(0, 1, by = 0.5),1),
+                     labels = percent)+ 
+  geom_hline(yintercept=0.04, linetype="dashed", color = "red")+
+  geom_vline(xintercept=0.5, linetype="dashed", color = "red")
+  
+```
+
+```{r}
+###Je calcul l'indice de Gini de cette courbe
+ineq(products$n_price,type="Gini")
+```
+```{r}
+###Je crée une courbe de Lorenz pour étudié la répartition des gains
+###par rapport aux clients
+ggplot(filter(customers,!(client_id %in% big_customers)),
+       aes(montant_total)) + 
+  stat_lorenz() + 
+  geom_abline(color = "grey") +
+  xlab("Pourcentage cumulé des clients") +
+  ylab("Pourcentage cumulé des gains") +
+  scale_x_continuous(breaks = round(seq(0, 1, by = 0.1),1),
+                     labels = percent) +
+  scale_y_continuous(labels = percent)+ 
+  geom_hline(yintercept=0.013, linetype="dashed", color = "red")+
+  geom_vline(xintercept=0.10, linetype="dashed", color = "red")
+```
+```{r}
+###Je calcul l'indice de Gini de cette courbe
+ineq(customers$montant_total,type="Gini")
+```
+
+```{r}
+###Je crée l'histogramme du nombre de client en fonction de leur âge 
+ggplot(customers_age, aes(x = age, y = n)) + 
+  geom_bar(stat = "identity", width = 0.3) +
+  xlab("age") + ylab("nombre de customers")
+```
+```{r}
+###Je crée un tableau afin de construire des histogrammes
+
+###Je calcul les gains pour chaque catégorie de livre pour chaque
+###catégorie d'âge et sexe
+categ_sex<-transactions%>%filter(!(client_id %in% big_customers))%>%
+  group_by(sex, categ)%>%
+  ###Je divise par 1000 pour plus de lisibilité
+  summarise(sum_price = sum(price)/1000)%>%
+  transmute(
+    categ = categ,
+    sum_price = sum_price)
+
+
+x<-transactions%>%
+  group_by(client_id, sex)%>%summarise()%>%
+  group_by(sex)%>%count()
+
+y<-categ_sex%>%group_by(sex)%>%
+  summarise(n_price = sum(sum_price))
+
+categ_sex<-inner_join(categ_age_sex, x)%>%inner_join(y)
+
+categ_sex$part_price<-
+  categ_age_sex$sum_price*100/categ_age_sex$n_price
+
+###Je crée une colonne mean pour avoir les moyennes par client pour
+###catégorie
+categ_sex$mean_price<-
+  categ_sex$sum_price*1000/categ_age_sex$n
+
+
+###Je construit mon histogramme
+df_sorted <- arrange(categ_sex, desc(categ), sex)
+
+df_cumsum <- ddply(df_sorted, "sex",
+                   transform, 
+                   label_ypos =cumsum(part_price) - 0.5*part_price)
+
+ggplot(df_cumsum, aes(x = sex, y = part_price, fill=categ)) +
+  geom_bar(stat="identity", width = 0.5)+
+  geom_text(aes(y=label_ypos, label=round(part_price,1)), vjust=1.6, 
+            color="white", size=3.5)+
+  xlab("Sexe")+ ylab("Pourcentage d'argent dépensé")
+  theme_minimal()
+```
+```{r}
+###Je réalise un test du chi-2
+
+###Je crée une table de contingence. sexe des clients/catégorie de livre
+contingence_table<-table(transactions$sex, transactions$categ)
+
+###Je réalise mon test du chi-2
+chisq.test(contingence_table)
+
+###je calcul le V de cramer (c'est ma statistique de test)
+cramer.v(contingence_table)
+```
+
+```{r}
+###J'effectue un test ANOVA pour calculer l'effet de l'âge
+###sur les catégories acheté
+res.aov <- aov(age ~ categ , data = transactions)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+```
+```{r}
+###Je décide de faire une afc pour voire si il est pertinent de regrouper
+###les gens selon des catégories d'âge
+variance_table<-table(transactions$age, transactions$categ)
+
+res.ca <- CA (variance_table, graph = FALSE)
+
+fviz_ca_biplot (res.ca, repel = TRUE, title = 
+                  "Répartition des âges selon les catégories achetées")
+```
+```{r}
+###Je crée une table de contingence. sexe des clients/catégorie de livre
+contingence_table<-table(transactions$categ_age, transactions$categ)
+
+###Je crée un balloonplot
+balloonplot(t(contingence_table), xlab = "categ", ylab = "categ_age",
+            label = TRUE, show.margins = FALSE)
+
+variance_table_chi2<-
+  table(transactions$categ_age,transactions$categ)
+
+chisq.test(variance_table_chi2)
+cramer.v(variance_table_chi2)
+```
+
+```{r}
+###Je fais un test du chi2 entre la categ d'age et la categ de livre
+###favorite
+variance_table_chi2<-
+  table(customers$categ_age,customers$categ_favorite)
+
+chisq.test(variance_table_chi2)
+cramer.v(variance_table_chi2)
+```
+
+```{r}
+###Analyse de la dispersion des frequence
+ggplot(filter(customers, !(client_id %in% big_customers)),
+       aes(x = "",y = frequence))+
+  geom_violin(trim = FALSE)+
+  geom_boxplot(width=0.1, fill="white")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=3)
+```
+```{r}
+###Analyse de la dispersion des paniers moyens
+ggplot(filter(customers, !(client_id %in% big_customers)),
+       aes(x = "",y = panier_moyen))+
+  geom_violin(trim = FALSE)+
+  geom_boxplot(width=0.1, fill="white")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=3)
+```
+```{r}
+###Analyse de la dispersion des montants totaux
+ggplot(filter(customers, !(client_id %in% big_customers)),
+       aes(x = "",y = montant_total))+
+  geom_violin(trim = FALSE)+
+  geom_boxplot(width=0.1, fill="white")+
+  stat_summary(fun.y=mean, geom="point", shape=23, size=3)
+```
+```{r}
+###Au vu de mes analyses je décides de travailler sur ma table
+###où les clients sont regroupés par âge et les variables
+###calculées avec la moyenne.
+###Je perds un peu de précision mais je gagné énormément en lisibilité
+
+###Je trace la courbe de l'âge en fonction du montant_total
+ggplot(fcustomers_age, aes(age, montant_total)) +
+  geom_line(col = "royalblue3") + xlab("age") + ylab("montant_total")
+```
+```{r}
+###Je trace la courbe de l'âge en fonction du panier moyen
+ggplot(fcustomers_age, aes(age, panier_moyen)) +
+  geom_line(col = "royalblue3") + xlab("age") + ylab("panier moyen")
+```
+```{r}
+###Je trace la courbe de l'âge en fonction de la fréquence
+ggplot(customers_age, aes(age, frequence)) +
+  geom_line(col = "royalblue3") + xlab("age") + ylab("frequence")
+```
+```{r}
+###je réalise la matrice des corrélation pour ces 3 variables par
+###raport à l'âge du client
+
+customers_cor<-select(fcustomers,"age","montant_total","panier_moyen",
+                    "frequence")
+
+cormat <- cor(customers_cor, method = "pearson")
+
+p.mat <- cor.mtest(customers_cor)$p
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD",
+                          "#4477AA"))
+
+corrplot(cormat, method = "color", col = col(200),
+         type = "full", order = "original", number.cex = .7,
+         addCoef.col = "black", # Add coefficient of correlation
+         tl.col = "black", tl.srt = 90, # Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, sig.level = 0.05, 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE)
+```
+
+```{r}
+###je réalise la matrice des corrélation pour ces 3 variables par
+###raport à l'âge du client pour les =<30 ans
+
+customers_cor<-select(fcustomers,"age", "montant_total",
+                      "panier_moyen","frequence")%>%
+  filter(age<=30)
+
+cormat <- cor(customers_cor, method = "pearson")
+
+p.mat <- cor.mtest(customers_cor)$p
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD",
+                          "#4477AA"))
+
+corrplot(cormat, method = "color", col = col(200),
+         type = "full", order = "original", number.cex = .7,
+         tl.col = "black", tl.srt = 90, # Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, insig = "p-value", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE)
+```
+```{r}
+###je réalise la matrice des corrélation pour ces 3 variables par
+###raport à l'âge du client pour les 30-50 ans
+
+customers_cor<-select(fcustomers,"age", "montant_total",
+                      "panier_moyen", "frequence")%>%
+  filter(age>30 & age<=50)
+
+cormat <- cor(customers_cor, method = "pearson")
+
+p.mat <- cor.mtest(customers_cor)$p
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD",
+                          "#4477AA"))
+
+corrplot(cormat, method = "color", col = col(200),
+         type = "full", order = "original", number.cex = .7,
+         tl.col = "black", tl.srt = 90, # Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, insig = "p-value", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE)
+```
+```{r}
+###je réalise la matrice des corrélation pour ces 3 variables par
+###raport à l'âge du client pour les >50 ans
+
+customers_cor<-select(customers, "age", "montant_total", "panier_moyen",
+                      "frequence")%>%
+  filter(age>50)
+
+cormat <- cor(customers_cor, method = "pearson")
+
+p.mat <- cor.mtest(customers_cor)$p
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD",
+                          "#4477AA"))
+
+corrplot(cormat, method = "color", col = col(200),
+         type = "full", order = "original", number.cex = .7,
+         tl.col = "black", tl.srt = 90, # Text label color and rotation
+         # Combine with significance
+         p.mat = p.mat, insig = "p-value", 
+         # hide correlation coefficient on the principal diagonal
+         diag = FALSE)
+```
+
+```{r}
+###J'effectue un test ANOVA pour calculer l'effet des categ d'âge
+###sur le montant total
+fcustomers$categ_age<-as.character(fcustomers$categ_age)
+
+res.aov <- aov( categ_2 ~ categ_age,
+                data = fcustomers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+```
+
+```{r}
+###J'effectue un test ANOVA pour calculer l'effet des categ d'âge
+###sur le panier moyen
+res.aov <- aov(panier_moyen ~ categ_age , data = fcustomers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+```
+```{r}
+###J'effectue un test ANOVA pour calculer l'effet des categ d'âge
+###sur la fréquence
+res.aov <- aov( frequence ~ categ_age , data = fcustomers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+```
+
+
+
+```{r}
+ggplot(categ_age_sex, aes(x = sex, y = mean_price)) + 
+  geom_bar(aes(color = categ, fill = categ),
+                 stat = "identity", width = 0.5) +
+  xlab("Catégories") + 
+  ylab("Dépense moyenne par client")
+```
+
+
+```{r}
+prediction2 <- gather(
+  data = fcustomers_age,
+  key = TYPE,
+  value = Pourcentage,
+  categ_0, categ_1, categ_2
+)
+
+ggplot(
+  prediction2,
+  aes(x = age, y = Pourcentage, color = TYPE)) + 
+  ylab("Pourcentage d'argent dépensé")+xlab("Age")+
+geom_line()
+```
+```{r}
+customers_age$categ_age<-as.character(customers_age$categ_age)
+customers$categ_age<-as.character(customers$categ_age)
+
+###J'effectue un test ANOVA pour calculer l'effet des categ d'âge
+###sur les proportions d'achat par catégorie de livre
+res.aov <- aov( categ_0 ~ categ_age, data = customers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+
+res.aov <- aov( categ_1 ~ categ_age, data = customers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+
+res.aov <- aov( categ_2 ~ categ_age, data = customers)
+summary(res.aov)
+
+# Effect size
+eta_squared(res.aov)
+```
+```{r}
+cor.test(customers_age$categ_1, customers_age$age)
+```
+```{r}
+###Je trace la courbe de l'âge en fonction du panier moyen
+ggplot(customers_age, aes(age, categ_0)) +
+  geom_line(col = "royalblue3") + xlab("Age")+ 
+  ylab("Part d'achat dans la catégorie 0")
+```
+
+```{r}
+pcor.test(fcustomers$panier_moyen,
+          fcustomers$age,
+          a[,c(1,2)],
+          method = c("spearman"))
+
+a<-data.frame(fcustomers$categ_0,
+           fcustomers$categ_1,
+           fcustomers$categ_2,fcustomers$frequence,
+           fcustomers$montant_total)
+```
+
+
+
