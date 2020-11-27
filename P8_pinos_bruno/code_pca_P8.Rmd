@@ -1,7 +1,0 @@
----
-title: "pca"
-author: "brunop31"
-date: "08/09/2020"
-output: html_document
----
-
