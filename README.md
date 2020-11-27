@@ -27,9 +27,9 @@ Context: finding some hints about hunger in the world and potential ways to fix 
 
 Skills acquired:
 
--Data manipulation in Python
+-Data manipulation in R and Python
 
--Relational algebra in Python
+-Relational algebra in R and Python
 
 -Learn about the Data Science libraries
 
