@@ -98,7 +98,7 @@ Skills acquired :
 
 ### PROJECT 8 : Personal project. Reporting.
 
-Context : I have to predict presence of pathogen in samples with DNA-microarray.
+Context : I have to predict presence of pathogen in samples with datas from DNA-microarray.
 
 Skills acquired :
 
