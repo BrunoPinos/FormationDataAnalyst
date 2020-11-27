@@ -1,5 +1,5 @@
 # Learning-OCR
-In this repository I'll major projects done during my studies at OCR
+In this repository I publish projects done during my studies at OCR
 
 So I'll just write down here the skills I acquired through these projects.
 
