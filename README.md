@@ -133,4 +133,4 @@ Skills acquired :
 
 <br><br><br><br>
 
-***NB : I didn't published project 1 to 4 because they were an introduction to the formation and i can't publish the project 8 because informations are classified***
+***NB : I didn't published project 1 to 4 because they were an introduction to the training course and i can't publish the project 8 because informations are classified***
