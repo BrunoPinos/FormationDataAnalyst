@@ -132,4 +132,4 @@ Skills acquired :
 -Forecasting model validation
 
 
-NB : I didn't published project 1 to 4 because they were an introduction to the formation and i can't publish the project 8 because informations are classified
+***NB : I didn't published project 1 to 4 because they were an introduction to the formation and i can't publish the project 8 because informations are classified***
